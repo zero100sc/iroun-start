@@ -1,0 +1,19 @@
+{
+  "name": "iroun-start",
+  "version": "1.0.0",
+  "description": "예비창업자·소상공인 정부지원사업 컨설팅 플랫폼",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^4.19.2",
+    "express-session": "^1.18.0",
+    "pg": "^8.12.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

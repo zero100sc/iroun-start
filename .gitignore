@@ -1,0 +1,4 @@
+node_modules/
+.env
+zero100/
+-w

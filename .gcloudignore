@@ -1,0 +1,8 @@
+.gcloudignore
+.git
+.gitignore
+node_modules/
+zero100/
+.env
+.env.example
+*.md

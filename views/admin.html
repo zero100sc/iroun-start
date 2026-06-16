@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>어드민 — 이로운스타트</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:       #f1f5f9;
+      --sidebar:  #0f172a;
+      --card:     #ffffff;
+      --border:   #e2e8f0;
+      --text:     #1e293b;
+      --muted:    #64748b;
+      --navy:     #1B3A6B;
+      --orange:   #FF6B2B;
+      --green:    #059669;
+      --blue:     #2563eb;
+      --yellow:   #d97706;
+      --red:      #dc2626;
+    }
+    body { font-family: 'Noto Sans KR', sans-serif; background: var(--bg); color: var(--text); display: flex; min-height: 100vh; }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      width: 220px; flex-shrink: 0;
+      background: var(--sidebar);
+      display: flex; flex-direction: column;
+      position: fixed; top: 0; bottom: 0; left: 0;
+      z-index: 10;
+    }
+    .sidebar-logo {
+      padding: 24px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .sidebar-logo .name { color: #fff; font-weight: 800; font-size: 1rem; }
+    .sidebar-logo .sub  { color: rgba(255,255,255,0.35); font-size: 0.72rem; margin-top: 2px; }
+    .sidebar-nav { padding: 16px 12px; flex: 1; }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; border-radius: 8px; margin-bottom: 2px;
+      color: rgba(255,255,255,0.5); font-size: 0.88rem; font-weight: 500;
+      cursor: pointer; transition: all .15s; text-decoration: none;
+    }
+    .nav-item:hover, .nav-item.active { background: rgba(255,255,255,0.08); color: #fff; }
+    .sidebar-footer {
+      padding: 16px 12px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+    .logout-btn {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; width: 100%; border: none;
+      background: none; color: rgba(255,255,255,0.4);
+      font-size: 0.85rem; cursor: pointer; border-radius: 8px;
+      font-family: inherit; transition: all .15s;
+    }
+    .logout-btn:hover { background: rgba(239,68,68,0.15); color: #fca5a5; }
+
+    /* ── MAIN ── */
+    .main { margin-left: 220px; flex: 1; min-height: 100vh; }
+
+    /* ── TOP BAR ── */
+    .topbar {
+      background: var(--card); border-bottom: 1px solid var(--border);
+      padding: 16px 28px; display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 5;
+    }
+    .topbar h1 { font-size: 1.05rem; font-weight: 700; }
+    .topbar-right { display: flex; align-items: center; gap: 12px; }
+    .export-btn {
+      background: var(--navy); color: #fff;
+      border: none; padding: 8px 16px; border-radius: 7px;
+      font-size: 0.82rem; font-weight: 700; cursor: pointer;
+      transition: opacity .2s; font-family: inherit;
+    }
+    .export-btn:hover { opacity: .85; }
+
+    /* ── CONTENT ── */
+    .content { padding: 24px 28px; }
+
+    /* ── STAT CARDS ── */
+    .stats-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 14px; margin-bottom: 24px; }
+    .stat-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 10px; padding: 18px 16px;
+    }
+    .stat-card .label { font-size: 0.75rem; color: var(--muted); font-weight: 600; margin-bottom: 6px; }
+    .stat-card .num   { font-size: 1.7rem; font-weight: 900; }
+    .stat-card .sub   { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
+    .stat-card.c-total    .num { color: var(--navy); }
+    .stat-card.c-startup  .num { color: var(--blue); }
+    .stat-card.c-small    .num { color: var(--green); }
+    .stat-card.c-pending  .num { color: var(--yellow); }
+    .stat-card.c-contact  .num { color: var(--blue); }
+    .stat-card.c-complete .num { color: var(--green); }
+
+    /* ── FILTER BAR ── */
+    .filter-bar {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 10px; padding: 16px 20px;
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .filter-bar select, .filter-bar input {
+      border: 1px solid var(--border); border-radius: 7px;
+      padding: 8px 12px; font-size: 0.85rem; color: var(--text);
+      background: var(--bg); outline: none; font-family: inherit;
+    }
+    .filter-bar input { min-width: 200px; }
+    .filter-bar select:focus, .filter-bar input:focus { border-color: var(--navy); }
+    .filter-btn {
+      background: var(--navy); color: #fff;
+      border: none; padding: 8px 18px; border-radius: 7px;
+      font-size: 0.85rem; font-weight: 700; cursor: pointer;
+      font-family: inherit; transition: opacity .2s;
+    }
+    .filter-btn:hover { opacity: .85; }
+    .reset-btn {
+      background: none; border: 1px solid var(--border);
+      color: var(--muted); padding: 8px 14px; border-radius: 7px;
+      font-size: 0.82rem; cursor: pointer; font-family: inherit;
+    }
+    .reset-btn:hover { border-color: var(--text); color: var(--text); }
+
+    /* ── TABLE ── */
+    .table-wrap {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 10px; overflow: hidden;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      background: #f8fafc; padding: 12px 14px;
+      font-size: 0.78rem; font-weight: 700; color: var(--muted);
+      text-align: left; border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    tbody tr { border-bottom: 1px solid var(--border); transition: background .12s; cursor: pointer; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #f8fafc; }
+    td { padding: 13px 14px; font-size: 0.85rem; vertical-align: middle; }
+    td.no-data { text-align: center; padding: 48px; color: var(--muted); }
+
+    .type-badge {
+      display: inline-block; font-size: 0.72rem; font-weight: 700;
+      padding: 3px 9px; border-radius: 999px;
+    }
+    .type-startup { background: #dbeafe; color: #1d4ed8; }
+    .type-small   { background: #d1fae5; color: #065f46; }
+
+    .status-sel {
+      border: 1px solid var(--border); border-radius: 6px;
+      padding: 5px 8px; font-size: 0.8rem; cursor: pointer;
+      font-family: inherit; outline: none; background: #fff;
+    }
+    .status-pending   { color: var(--yellow); border-color: #fde68a; background: #fffbeb; }
+    .status-contacted { color: var(--blue);   border-color: #bfdbfe; background: #eff6ff; }
+    .status-completed { color: var(--green);  border-color: #a7f3d0; background: #ecfdf5; }
+
+    .interest-tag {
+      display: inline-block; background: #f1f5f9; color: var(--muted);
+      font-size: 0.7rem; padding: 2px 7px; border-radius: 4px; margin: 1px;
+    }
+
+    /* ── PAGINATION ── */
+    .pagination {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 20px; border-top: 1px solid var(--border);
+      font-size: 0.82rem; color: var(--muted);
+    }
+    .page-btns { display: flex; gap: 6px; }
+    .page-btn {
+      width: 32px; height: 32px; border-radius: 6px;
+      border: 1px solid var(--border); background: #fff;
+      font-size: 0.82rem; cursor: pointer; display: flex;
+      align-items: center; justify-content: center;
+      font-family: inherit; transition: all .15s;
+    }
+    .page-btn:hover { border-color: var(--navy); color: var(--navy); }
+    .page-btn.active { background: var(--navy); color: #fff; border-color: var(--navy); }
+    .page-btn:disabled { opacity: .35; cursor: default; }
+
+    /* ── DETAIL MODAL ── */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0; z-index: 100;
+      background: rgba(0,0,0,0.5); backdrop-filter: blur(3px);
+      align-items: center; justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: #fff; border-radius: 16px;
+      width: 560px; max-width: 95vw;
+      max-height: 90vh; overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    .modal-head {
+      padding: 20px 24px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; background: #fff; z-index: 1;
+    }
+    .modal-head h3 { font-size: 1rem; font-weight: 700; }
+    .modal-close { background: none; border: none; font-size: 1.3rem; cursor: pointer; color: var(--muted); line-height: 1; }
+    .modal-body { padding: 24px; }
+    .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; }
+    .detail-item .dl { font-size: 0.75rem; color: var(--muted); font-weight: 600; margin-bottom: 3px; }
+    .detail-item .dv { font-size: 0.9rem; font-weight: 500; }
+    .detail-full { margin-bottom: 14px; }
+    .detail-full .dl { font-size: 0.75rem; color: var(--muted); font-weight: 600; margin-bottom: 6px; }
+    .detail-full .dv { font-size: 0.88rem; background: var(--bg); border-radius: 8px; padding: 10px 14px; line-height: 1.6; }
+    .memo-area {
+      width: 100%; border: 1px solid var(--border); border-radius: 8px;
+      padding: 10px 14px; font-size: 0.88rem; font-family: inherit;
+      resize: vertical; min-height: 80px; outline: none;
+    }
+    .memo-area:focus { border-color: var(--navy); }
+    .modal-actions { display: flex; gap: 10px; margin-top: 16px; }
+    .save-btn {
+      flex: 1; background: var(--navy); color: #fff;
+      border: none; padding: 11px; border-radius: 8px;
+      font-size: 0.9rem; font-weight: 700; cursor: pointer; font-family: inherit;
+    }
+    .save-btn:hover { opacity: .88; }
+
+    @media (max-width: 1100px) { .stats-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .main { margin-left: 0; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .content { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="name">⬛ 이로운스타트</div>
+    <div class="sub">어드민 패널</div>
+  </div>
+  <nav class="sidebar-nav">
+    <a class="nav-item active" href="/admin">📋 상담 신청 목록</a>
+    <a class="nav-item" href="/admin?type=예비창업자">🚀 예비창업자</a>
+    <a class="nav-item" href="/admin?type=소상공인">🏪 소상공인</a>
+    <a class="nav-item" href="/admin?status=pending">⏳ 대기중</a>
+    <a class="nav-item" href="/admin?status=contacted">💬 상담중</a>
+    <a class="nav-item" href="/admin?status=completed">✅ 완료</a>
+    <a class="nav-item" href="/" target="_blank">🌐 랜딩페이지</a>
+  </nav>
+  <div class="sidebar-footer">
+    <button class="logout-btn" onclick="location.href='/admin/logout'">🚪 로그아웃</button>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <h1>상담 신청 관리</h1>
+    <div class="topbar-right">
+      <button class="export-btn" onclick="exportCSV()">📥 CSV 내보내기</button>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- STATS -->
+    <div class="stats-grid" id="stats-grid">
+      <div class="stat-card c-total">   <div class="label">전체 신청</div><div class="num" id="s-total">-</div><div class="sub">누적</div></div>
+      <div class="stat-card c-startup"> <div class="label">예비창업자</div><div class="num" id="s-startup">-</div></div>
+      <div class="stat-card c-small">   <div class="label">소상공인</div><div class="num" id="s-small">-</div></div>
+      <div class="stat-card c-pending"> <div class="label">대기중</div><div class="num" id="s-pending">-</div><div class="sub">연락 필요</div></div>
+      <div class="stat-card c-contact"> <div class="label">상담중</div><div class="num" id="s-contacted">-</div></div>
+      <div class="stat-card c-complete"><div class="label">완료</div><div class="num" id="s-completed">-</div></div>
+    </div>
+
+    <!-- FILTER -->
+    <div class="filter-bar">
+      <select id="f-type">
+        <option value="">전체 유형</option>
+        <option value="예비창업자">예비창업자</option>
+        <option value="소상공인">소상공인</option>
+      </select>
+      <select id="f-status">
+        <option value="">전체 상태</option>
+        <option value="pending">대기중</option>
+        <option value="contacted">상담중</option>
+        <option value="completed">완료</option>
+      </select>
+      <input type="text" id="f-q" placeholder="이름 / 연락처 / 상호명 검색..." />
+      <button class="filter-btn" onclick="loadData(1)">검색</button>
+      <button class="reset-btn" onclick="resetFilter()">초기화</button>
+    </div>
+
+    <!-- TABLE -->
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>유형</th>
+            <th>이름</th>
+            <th>연락처</th>
+            <th>업종 / 현황</th>
+            <th>관심 지원사업</th>
+            <th>접수일</th>
+            <th>상태</th>
+          </tr>
+        </thead>
+        <tbody id="table-body">
+          <tr><td class="no-data" colspan="8">데이터 로딩 중...</td></tr>
+        </tbody>
+      </table>
+      <div class="pagination">
+        <span id="page-info">-</span>
+        <div class="page-btns" id="page-btns"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="modal-title">상담 신청 상세</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+  let currentPage = 1;
+  let currentData = [];
+
+  // URL 파라미터로 초기 필터 설정
+  const urlParams = new URLSearchParams(location.search);
+  if (urlParams.get('type'))   document.getElementById('f-type').value   = urlParams.get('type');
+  if (urlParams.get('status')) document.getElementById('f-status').value = urlParams.get('status');
+
+  // ── 통계 로드 ──
+  async function loadStats() {
+    try {
+      const res  = await fetch('/api/admin/stats');
+      const data = await res.json();
+      document.getElementById('s-total').textContent     = data.total     || 0;
+      document.getElementById('s-startup').textContent   = data.startup   || 0;
+      document.getElementById('s-small').textContent     = data.small     || 0;
+      document.getElementById('s-pending').textContent   = data.pending   || 0;
+      document.getElementById('s-contacted').textContent = data.contacted || 0;
+      document.getElementById('s-completed').textContent = data.completed || 0;
+    } catch (e) { console.error('stats error', e); }
+  }
+
+  // ── 목록 로드 ──
+  async function loadData(page = 1) {
+    currentPage = page;
+    const type   = document.getElementById('f-type').value;
+    const status = document.getElementById('f-status').value;
+    const q      = document.getElementById('f-q').value.trim();
+
+    const params = new URLSearchParams({ page });
+    if (type)   params.set('type', type);
+    if (status) params.set('status', status);
+    if (q)      params.set('q', q);
+
+    document.getElementById('table-body').innerHTML =
+      '<tr><td class="no-data" colspan="8">로딩 중...</td></tr>';
+
+    try {
+      const res  = await fetch('/api/admin/submissions?' + params);
+      const json = await res.json();
+      currentData = json.data || [];
+      renderTable(json);
+      renderPagination(json.total, json.page, json.limit);
+    } catch (e) {
+      document.getElementById('table-body').innerHTML =
+        '<tr><td class="no-data" colspan="8">데이터 로드 실패</td></tr>';
+    }
+  }
+
+  function renderTable(json) {
+    const tbody = document.getElementById('table-body');
+    if (!json.data.length) {
+      tbody.innerHTML = '<tr><td class="no-data" colspan="8">신청 내역이 없습니다.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = json.data.map(r => {
+      const typeClass = r.type === '예비창업자' ? 'type-startup' : 'type-small';
+      const industry  = r.business_type || r.industry || r.current_status || '-';
+      const interests = (r.interests || []).slice(0, 2).map(i => {
+        const short = i.replace(/\(.*?\)/g,'').replace('어떤 게 맞는지 모르겠어요','추천 요청').trim().slice(0, 15);
+        return `<span class="interest-tag">${short}</span>`;
+      }).join('');
+      const statusClass = `status-${r.status}`;
+      const statusLabel = { pending: '대기중', contacted: '상담중', completed: '완료' }[r.status] || r.status;
+      const date = new Date(r.created_at).toLocaleString('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+      return `
+        <tr onclick="openModal(${r.id})">
+          <td style="color:var(--muted);font-size:.78rem">#${r.id}</td>
+          <td><span class="type-badge ${typeClass}">${r.type}</span></td>
+          <td style="font-weight:600">${r.name}</td>
+          <td>${r.phone}</td>
+          <td style="color:var(--muted);font-size:.82rem">${industry}</td>
+          <td>${interests || '<span style="color:var(--muted);font-size:.78rem">-</span>'}</td>
+          <td style="color:var(--muted);font-size:.78rem">${date}</td>
+          <td onclick="event.stopPropagation()">
+            <select class="status-sel ${statusClass}" onchange="updateStatus(${r.id}, this)">
+              <option value="pending"   ${r.status==='pending'  ?'selected':''}>대기중</option>
+              <option value="contacted" ${r.status==='contacted'?'selected':''}>상담중</option>
+              <option value="completed" ${r.status==='completed'?'selected':''}>완료</option>
+            </select>
+          </td>
+        </tr>`;
+    }).join('');
+  }
+
+  function renderPagination(total, page, limit) {
+    const totalPages = Math.ceil(total / limit);
+    document.getElementById('page-info').textContent =
+      `전체 ${total}건 중 ${(page-1)*limit+1}~${Math.min(page*limit,total)}건`;
+
+    const btns = document.getElementById('page-btns');
+    btns.innerHTML = '';
+
+    const makeBtn = (label, p, disabled, active) => {
+      const b = document.createElement('button');
+      b.className = 'page-btn' + (active ? ' active' : '');
+      b.textContent = label;
+      b.disabled = disabled;
+      if (!disabled) b.onclick = () => loadData(p);
+      return b;
+    };
+
+    btns.appendChild(makeBtn('‹', page-1, page<=1, false));
+    const start = Math.max(1, page-2), end = Math.min(totalPages, start+4);
+    for (let i = start; i <= end; i++) btns.appendChild(makeBtn(i, i, false, i===page));
+    btns.appendChild(makeBtn('›', page+1, page>=totalPages, false));
+  }
+
+  // ── 상태 변경 ──
+  async function updateStatus(id, sel) {
+    const status = sel.value;
+    sel.className = `status-sel status-${status}`;
+    await fetch(`/api/admin/submissions/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status }),
+    });
+    loadStats();
+  }
+
+  // ── 상세 모달 ──
+  function openModal(id) {
+    const r = currentData.find(x => x.id === id);
+    if (!r) return;
+
+    document.getElementById('modal-title').textContent = `#${r.id} ${r.name} 상담 상세`;
+    const interestList = (r.interests || []).map(i => `<span class="interest-tag">${i}</span>`).join(' ');
+    const statusLabel  = { pending: '⏳ 대기중', contacted: '💬 상담중', completed: '✅ 완료' }[r.status];
+    const industry     = r.business_type || r.industry || '-';
+
+    document.getElementById('modal-body').innerHTML = `
+      <div class="detail-grid">
+        <div class="detail-item"><div class="dl">유형</div><div class="dv">${r.type}</div></div>
+        <div class="detail-item"><div class="dl">상태</div><div class="dv">${statusLabel}</div></div>
+        <div class="detail-item"><div class="dl">이름</div><div class="dv">${r.name}</div></div>
+        <div class="detail-item"><div class="dl">연락처</div><div class="dv"><a href="tel:${r.phone}">${r.phone}</a></div></div>
+        ${r.current_status ? `<div class="detail-item"><div class="dl">현재 상태</div><div class="dv">${r.current_status}</div></div>` : ''}
+        ${r.business_type  ? `<div class="detail-item"><div class="dl">창업 예정 업종</div><div class="dv">${r.business_type}</div></div>` : ''}
+        ${r.business_name  ? `<div class="detail-item"><div class="dl">상호명</div><div class="dv">${r.business_name}</div></div>` : ''}
+        ${r.industry       ? `<div class="detail-item"><div class="dl">업종</div><div class="dv">${r.industry}</div></div>` : ''}
+        ${r.operation_period ? `<div class="detail-item"><div class="dl">사업 기간</div><div class="dv">${r.operation_period}</div></div>` : ''}
+        ${r.employee_count   ? `<div class="detail-item"><div class="dl">직원 수</div><div class="dv">${r.employee_count}</div></div>` : ''}
+        <div class="detail-item" style="grid-column:1/-1"><div class="dl">접수일</div><div class="dv">${new Date(r.created_at).toLocaleString('ko-KR')}</div></div>
+      </div>
+      ${r.interests?.length ? `<div class="detail-full"><div class="dl">관심 지원사업</div><div class="dv">${interestList}</div></div>` : ''}
+      ${r.message ? `<div class="detail-full"><div class="dl">문의 내용</div><div class="dv">${r.message}</div></div>` : ''}
+      <div class="detail-full">
+        <div class="dl">어드민 메모</div>
+        <textarea class="memo-area" id="memo-input" placeholder="상담 내용, 진행 상황 등 메모를 입력하세요...">${r.memo || ''}</textarea>
+      </div>
+      <div class="modal-actions">
+        <button class="save-btn" onclick="saveMemo(${r.id})">메모 저장</button>
+      </div>`;
+
+    document.getElementById('modal').classList.add('open');
+  }
+
+  async function saveMemo(id) {
+    const memo = document.getElementById('memo-input').value;
+    await fetch(`/api/admin/submissions/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ memo }),
+    });
+    const item = currentData.find(x => x.id === id);
+    if (item) item.memo = memo;
+    alert('메모가 저장됐습니다.');
+  }
+
+  function closeModal() {
+    document.getElementById('modal').classList.remove('open');
+  }
+  document.getElementById('modal').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeModal();
+  });
+
+  // ── 필터 초기화 ──
+  function resetFilter() {
+    document.getElementById('f-type').value   = '';
+    document.getElementById('f-status').value = '';
+    document.getElementById('f-q').value      = '';
+    loadData(1);
+  }
+
+  // ── CSV 내보내기 ──
+  function exportCSV() { location.href = '/api/admin/export'; }
+
+  // ── Enter 키 검색 ──
+  document.getElementById('f-q').addEventListener('keydown', e => {
+    if (e.key === 'Enter') loadData(1);
+  });
+
+  // 초기 로드
+  loadStats();
+  loadData(1);
+</script>
+</body>
+</html>
