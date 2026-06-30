@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>제로백스쿨 — 내 워크스페이스</title>
+  <link rel="icon" href="/logo-zero100-square.png" />
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
+  <style>
+    :root {
+      --ink:#0B1B34; --violet:#7A2E9C; --magenta:#E6197E;
+      --grad:linear-gradient(120deg,#7A2E9C,#E6197E);
+      --paper:#F7F6FB; --line:#E7E4F0; --text:#1B1726; --muted:#6A6380;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Pretendard Variable',-apple-system,sans-serif;background:var(--paper);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased;}
+    a{color:inherit;text-decoration:none;}
+    .wrap{max-width:760px;margin:0 auto;padding:0 20px;}
+    a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2.5px solid var(--magenta);outline-offset:3px;border-radius:6px;}
+
+    header{position:sticky;top:0;z-index:10;background:#fff;border-bottom:1px solid var(--line);height:64px;display:flex;align-items:center;}
+    header .wrap{display:flex;align-items:center;justify-content:space-between;max-width:980px;}
+    header img{height:30px;width:auto;display:block;}
+    .h-right{display:flex;align-items:center;gap:14px;}
+    .h-right a,.h-right button{font-size:0.88rem;color:var(--muted);font-weight:600;background:none;border:none;cursor:pointer;font-family:inherit;}
+    .h-right a:hover,.h-right button:hover{color:var(--violet);}
+    .h-right .pill{display:inline-flex;align-items:center;gap:6px;padding:7px 15px;border:1px solid var(--line);border-radius:999px;line-height:1;transition:border-color .15s,color .15s;}
+    .h-right .pill:hover{border-color:var(--violet);color:var(--violet);}
+
+    main{padding:40px 0 80px;}
+    .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:32px;margin-bottom:18px;}
+    h1{font-size:1.5rem;font-weight:800;letter-spacing:-0.02em;margin-bottom:8px;}
+    h2{font-size:1.15rem;font-weight:700;margin-bottom:16px;letter-spacing:-0.01em;}
+    .sub{color:var(--muted);font-size:0.94rem;margin-bottom:24px;}
+    .eyebrow{font-size:0.74rem;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:var(--magenta);margin-bottom:10px;}
+
+    label{display:block;font-size:0.84rem;font-weight:600;margin-bottom:7px;}
+    .req{color:var(--magenta);}
+    input[type=text],input[type=email],input[type=password],input[type=number],select,textarea{
+      width:100%;padding:11px 14px;border:1px solid var(--line);border-radius:10px;font-size:0.92rem;
+      font-family:inherit;color:var(--text);background:#fff;outline:none;transition:border-color .2s,box-shadow .2s;}
+    input:focus,select:focus,textarea:focus{border-color:var(--violet);box-shadow:0 0 0 3px rgba(122,46,156,0.12);}
+    textarea{resize:vertical;min-height:88px;}
+    .field{margin-bottom:16px;}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+    @media(max-width:560px){.row{grid-template-columns:1fr;}}
+
+    .btn{background:var(--grad);color:#fff;border:none;padding:13px 22px;border-radius:11px;font-size:0.95rem;font-weight:700;font-family:inherit;cursor:pointer;transition:filter .2s,transform .1s;}
+    .btn:hover{filter:brightness(1.08);transform:translateY(-1px);}
+    .btn.full{width:100%;}
+    .btn.ghost{background:#fff;color:var(--violet);border:1px solid var(--line);}
+    .btn.ghost:hover{border-color:var(--violet);filter:none;}
+    .btn-row{display:flex;gap:10px;margin-top:8px;}
+
+    .tabs-auth{display:flex;border:1px solid var(--line);border-radius:11px;overflow:hidden;margin-bottom:22px;}
+    .tabs-auth button{flex:1;padding:13px;background:#f1eef7;color:var(--muted);border:none;font-weight:700;font-size:0.92rem;cursor:pointer;font-family:inherit;}
+    .tabs-auth button.active{background:#fff;color:var(--violet);}
+
+    .steps{display:flex;gap:8px;margin-bottom:24px;}
+    .step-pill{flex:1;text-align:center;padding:9px;border-radius:9px;font-size:0.82rem;font-weight:700;background:#f1eef7;color:var(--muted);}
+    .step-pill.active{background:var(--grad);color:#fff;}
+    .step-pill.done{background:#efe7f5;color:var(--violet);}
+    .tab-panel{display:none;}
+    .tab-panel.active{display:block;}
+
+    .seg-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+    @media(max-width:560px){.seg-grid{grid-template-columns:1fr;}}
+    .seg-item{display:flex;align-items:flex-start;gap:9px;padding:11px 13px;border:1px solid var(--line);border-radius:10px;cursor:pointer;transition:border-color .15s,background .15s;}
+    .seg-item:hover{border-color:#cdbfe6;background:var(--paper);}
+    .seg-item.checked{border-color:var(--violet);background:#faf6fe;}
+    .seg-item input{margin-top:2px;accent-color:var(--violet);flex-shrink:0;}
+    .seg-item .lbl{font-size:0.86rem;font-weight:600;}
+    .seg-item .def{font-size:0.76rem;color:var(--muted);}
+
+    .msg{padding:11px 14px;border-radius:10px;font-size:0.85rem;margin-bottom:16px;display:none;}
+    .msg.err{background:#fbeaf2;border:1px solid #f3cfe5;color:#9a2362;display:block;}
+    .msg.ok{background:#eafaf2;border:1px solid #c7f0dd;color:#1f7a52;display:block;}
+
+    .summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+    @media(max-width:560px){.summary-grid{grid-template-columns:1fr;}}
+    .sum-item .k{font-size:0.74rem;color:var(--muted);font-weight:600;margin-bottom:3px;}
+    .sum-item .v{font-size:0.92rem;font-weight:600;}
+    .seg-tag{display:inline-block;background:#f1eef7;color:var(--violet);font-size:0.76rem;font-weight:600;padding:3px 10px;border-radius:999px;margin:2px 3px 2px 0;}
+
+    .next-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:6px;}
+    @media(max-width:560px){.next-grid{grid-template-columns:1fr;}}
+    .next-card{border:1px solid var(--line);border-radius:12px;padding:16px;background:var(--paper);}
+    .next-card .t{font-weight:700;font-size:0.92rem;margin-bottom:3px;}
+    .next-card .d{font-size:0.8rem;color:var(--muted);}
+    .next-card.locked{opacity:0.55;}
+    .lockbadge{font-size:0.68rem;font-weight:700;color:var(--muted);background:#ece8f2;padding:2px 8px;border-radius:999px;}
+    .match-card{border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:12px;transition:border-color .2s,box-shadow .2s;}
+    .match-card:hover{border-color:#cdbfe6;box-shadow:0 8px 24px rgba(122,46,156,0.08);}
+    .match-card .top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;}
+    .match-card .name{font-weight:700;font-size:1rem;}
+    .match-card .agency{font-size:0.8rem;color:var(--muted);margin-top:2px;}
+    .match-card .badge{font-family:var(--data);font-weight:700;font-size:1.3rem;background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;flex-shrink:0;}
+    .match-card .amount{font-size:0.9rem;color:var(--violet);font-weight:600;margin:8px 0 0;}
+    .match-bar{height:5px;border-radius:999px;background:#ece8f2;overflow:hidden;margin-top:8px;}
+    .match-bar i{display:block;height:100%;background:var(--grad);}
+    .match-card .ev{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px;}
+    .match-card .ev span{font-size:0.74rem;background:#f1eef7;color:var(--violet);padding:3px 9px;border-radius:999px;}
+    .hidden{display:none;}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <a href="/" aria-label="제로백스쿨"><img src="/logo-zero100.png" alt="제로백스쿨 ZERO100" /></a>
+      <div class="h-right" id="h-right"></div>
+    </div>
+  </header>
+
+  <main>
+    <div class="wrap">
+
+      <!-- ── 인증 뷰 ── -->
+      <section id="view-auth" class="hidden">
+        <div class="card">
+          <div class="eyebrow">내 워크스페이스</div>
+          <h1>제로백스쿨 시작하기</h1>
+          <p class="sub">한 번 입력한 정보로 매칭 · 사업계획서 · 발표자료까지 이어집니다.</p>
+
+          <div class="tabs-auth">
+            <button id="tab-login" class="active" onclick="switchAuth('login')">로그인</button>
+            <button id="tab-signup" onclick="switchAuth('signup')">회원가입</button>
+          </div>
+
+          <div id="auth-msg" class="msg"></div>
+
+          <!-- 로그인 -->
+          <form id="form-login" onsubmit="doLogin(event)">
+            <div class="field"><label>이메일 <span class="req">*</span></label><input type="email" name="email" placeholder="you@example.com" required /></div>
+            <div class="field"><label>비밀번호 <span class="req">*</span></label><input type="password" name="password" placeholder="비밀번호" required /></div>
+            <button class="btn full" type="submit">로그인</button>
+          </form>
+
+          <!-- 회원가입 -->
+          <form id="form-signup" class="hidden" onsubmit="doSignup(event)">
+            <div class="row">
+              <div class="field"><label>이름 <span class="req">*</span></label><input type="text" name="name" placeholder="홍길동" required /></div>
+              <div class="field"><label>연락처</label><input type="text" name="phone" placeholder="010-0000-0000" /></div>
+            </div>
+            <div class="field"><label>이메일 <span class="req">*</span></label><input type="email" name="email" placeholder="you@example.com" required /></div>
+            <div class="field"><label>비밀번호 <span class="req">*</span> <span style="color:var(--muted);font-weight:500;font-size:0.78rem">(8자 이상)</span></label><input type="password" name="password" placeholder="비밀번호" minlength="8" required /></div>
+            <button class="btn full" type="submit">가입하고 시작하기</button>
+          </form>
+        </div>
+      </section>
+
+      <!-- ── STEP1 프로필 빌더 ── -->
+      <section id="view-profile" class="hidden">
+        <div class="card">
+          <div class="eyebrow">STEP 1 · 고객 프로필</div>
+          <h1>내 정보 입력</h1>
+          <p class="sub">이후 모든 단계(아이템 정의 · 매칭 · 사업계획서)의 기초가 되는 정보입니다. 한 번만 입력하면 됩니다.</p>
+
+          <div class="steps">
+            <div class="step-pill active" id="pill-1">1. 기본정보</div>
+            <div class="step-pill" id="pill-2">2. 사업정보</div>
+            <div class="step-pill" id="pill-3">3. 자금·경험</div>
+          </div>
+
+          <div id="profile-msg" class="msg"></div>
+
+          <form id="form-profile" onsubmit="return false">
+            <!-- Tab 1 기본정보 -->
+            <div class="tab-panel active" id="ptab-1">
+              <div class="field"><label>사업장명(예정 포함) <span class="req">*</span></label><input type="text" name="bizName" placeholder="예) 제로백 컴퍼니 (예비창업자는 예정 상호명)" required /></div>
+              <div class="row">
+                <div class="field"><label>설립연도</label>
+                  <select name="foundedYear"><option value="">선택</option><option>설립 전</option><option>2026</option><option>2025</option><option>2024</option><option>2023</option><option>2022 이전</option></select>
+                </div>
+                <div class="field"><label>업종/업태</label>
+                  <select name="industryCode"><option value="">선택</option><option>IT·소프트웨어</option><option>제조·하드웨어</option><option>유통·이커머스</option><option>식품·외식</option><option>뷰티·패션</option><option>교육·콘텐츠</option><option>바이오·헬스케어</option><option>기타 서비스업</option></select>
+                </div>
+              </div>
+              <div class="row">
+                <div class="field"><label>본사 위치(시/도)</label>
+                  <select name="regionSido"><option value="">선택</option><option>서울</option><option>경기</option><option>인천</option><option>부산</option><option>대구</option><option>광주</option><option>대전</option><option>울산</option><option>세종</option><option>강원</option><option>충북</option><option>충남</option><option>전북</option><option>전남</option><option>경북</option><option>경남</option><option>제주</option></select>
+                </div>
+                <div class="field"><label>시/군/구</label><input type="text" name="regionSigungu" placeholder="예) 강남구" /></div>
+              </div>
+              <div class="row">
+                <div class="field"><label>직원수</label><input type="number" name="employeeCnt" min="0" placeholder="대표 포함 인원" /></div>
+                <div class="field"><label>연매출</label>
+                  <select name="revenueBand"><option value="">선택</option><option>무매출/예비창업</option><option>1억 미만</option><option>1~5억</option><option>5~10억</option><option>10억 이상</option></select>
+                </div>
+              </div>
+              <div class="field">
+                <label>고객 세그먼트 <span class="req">*</span> <span style="color:var(--muted);font-weight:500;font-size:0.78rem">(복수 선택)</span></label>
+                <div class="seg-grid" id="seg-grid">불러오는 중…</div>
+              </div>
+              <div class="btn-row"><button type="button" class="btn" onclick="goTab(2)">다음 →</button></div>
+            </div>
+
+            <!-- Tab 2 사업정보 -->
+            <div class="tab-panel" id="ptab-2">
+              <div class="field"><label>사업 개요 <span style="color:var(--muted);font-weight:500;font-size:0.78rem">(최대 1000자)</span></label><textarea name="bizSummary" maxlength="1000" placeholder="어떤 사업인지 간단히 적어주세요."></textarea></div>
+              <div class="field"><label>제품/서비스 설명</label><textarea name="productDesc" placeholder="제품·서비스의 핵심을 적어주세요."></textarea></div>
+              <div class="field"><label>핵심 기술 <span style="color:var(--muted);font-weight:500;font-size:0.78rem">(R&D 트랙은 권장)</span></label><input type="text" name="coreTech" placeholder="예: AI, IoT, 바이오" /></div>
+              <div class="field"><label>경쟁 우위 <span style="color:var(--muted);font-weight:500;font-size:0.78rem">(최대 500자)</span></label><textarea name="competitiveEdge" maxlength="500" placeholder="경쟁자 대비 차별점을 적어주세요."></textarea></div>
+              <div class="btn-row"><button type="button" class="btn ghost" onclick="goTab(1)">← 이전</button><button type="button" class="btn" onclick="goTab(3)">다음 →</button></div>
+            </div>
+
+            <!-- Tab 3 자금·경험 -->
+            <div class="tab-panel" id="ptab-3">
+              <p class="sub" style="margin-bottom:18px">자금 조달 이력과 정부지원사업 경험은 매칭 정확도와 중복수혜 검증에 사용됩니다. (상세 입력은 추후 단계에서 보강할 수 있습니다)</p>
+              <div class="field"><label>과거 정부지원사업 수행 경험</label>
+                <select name="fundingExp"><option value="">선택</option><option>없음</option><option>있음</option></select>
+              </div>
+              <div class="field"><label>희망 자금 조달 규모</label>
+                <select name="fundingWish"><option value="">선택</option><option>1천만원 미만</option><option>1천~5천만원</option><option>5천만~1억</option><option>1억 이상</option></select>
+              </div>
+              <div class="btn-row"><button type="button" class="btn ghost" onclick="goTab(2)">← 이전</button><button type="button" class="btn" id="btn-save" onclick="saveProfile()">프로필 저장하고 완료</button></div>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- ── 마이페이지 ── -->
+      <section id="view-mypage" class="hidden">
+        <div class="card">
+          <div class="eyebrow">내 워크스페이스</div>
+          <h1 id="mp-greeting">반갑습니다 👋</h1>
+          <p class="sub">프로필을 기반으로 다음 단계를 진행할 수 있습니다.</p>
+          <h2>내 프로필 요약</h2>
+          <div class="summary-grid" id="mp-summary"></div>
+          <div class="btn-row" style="margin-top:18px"><button class="btn ghost" onclick="editProfile()">프로필 수정</button></div>
+        </div>
+        <div class="card">
+          <h2>다음 단계</h2>
+          <div class="next-grid">
+            <div class="next-card" onclick="goItem()" style="cursor:pointer"><div class="t">STEP 2 · 아이템 정의 + AI 아이템명 →</div><div class="d">합격형 아이템명 3안 <span style="color:var(--violet)">(목업)</span></div></div>
+            <div class="next-card" onclick="goAnalysis()" style="cursor:pointer"><div class="t">STEP 3 · 액셀러레이터 분석 →</div><div class="d">5영역 강점·약점 진단 <span style="color:var(--violet)">(목업)</span></div></div>
+            <div class="next-card" onclick="goMatch()" style="cursor:pointer;border-color:#cdbfe6"><div class="t">STEP 4 · 정부지원사업 매칭 →</div><div class="d">매칭률 산출 · <b style="color:var(--violet)">동작</b></div></div>
+            <div class="next-card" onclick="goMatch()" style="cursor:pointer"><div class="t">STEP 5 · 사업계획서 →</div><div class="d">매칭에서 공고 선택 후 작성 <span style="color:var(--violet)">(목업)</span></div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── STEP4 매칭 결과 ── -->
+      <section id="view-match" class="hidden">
+        <div class="card">
+          <div class="eyebrow">STEP 4 · 정부지원사업 매칭</div>
+          <h1>내게 맞는 지원사업</h1>
+          <p class="sub">프로필을 기준으로 매칭률을 산출했습니다. <span style="color:var(--muted);font-size:0.85rem">(룰 기반 매칭 — AI 임베딩 정밀도 향상은 추후)</span></p>
+          <div class="btn-row" style="margin-bottom:18px"><button class="btn ghost" onclick="goMypage()">← 마이페이지</button></div>
+          <div id="match-list">매칭 중…</div>
+        </div>
+      </section>
+
+      <!-- ── STEP2 아이템 정의 + AI 아이템명 ── -->
+      <section id="view-item" class="hidden">
+        <div class="card">
+          <div class="eyebrow">STEP 2 · 아이템 정의</div>
+          <h1>사업 아이템 정의</h1>
+          <p class="sub">정부지원사업 신청서의 핵심 항목입니다. 입력하면 AI가 합격형 아이템명을 제안합니다.</p>
+          <div id="item-msg" class="msg"></div>
+          <div class="field"><label>① 아이템 개요 — 핵심 기능</label><textarea id="i-core" placeholder="제품·서비스의 핵심 기능"></textarea></div>
+          <div class="field"><label>고객 혜택</label><input type="text" id="i-benefit" placeholder="고객이 얻는 핵심 혜택" /></div>
+          <div class="field"><label>② 문제 인식</label><textarea id="i-problem" placeholder="해결하려는 시장 문제"></textarea></div>
+          <div class="field"><label>③ 실현 가능성 — 개발 계획</label><textarea id="i-devplan" placeholder="사업기간 내 개발·구체화 계획"></textarea></div>
+          <div class="field"><label>④ 차별화 전략 <span style="color:var(--muted);font-weight:500;font-size:0.78rem">(정확히 3가지)</span></label>
+            <input type="text" id="i-s1" placeholder="차별화 전략 1" style="margin-bottom:8px" />
+            <input type="text" id="i-s2" placeholder="차별화 전략 2" style="margin-bottom:8px" />
+            <input type="text" id="i-s3" placeholder="차별화 전략 3" />
+          </div>
+          <div class="btn-row"><button class="btn ghost" onclick="goMypage()">← 마이페이지</button><button class="btn" id="btn-gennames" onclick="genNames()">AI 아이템명 생성 →</button></div>
+          <div id="name-suggestions" style="margin-top:18px"></div>
+        </div>
+      </section>
+
+      <!-- ── STEP3 액셀러레이터 분석 ── -->
+      <section id="view-analysis" class="hidden">
+        <div class="card">
+          <div class="eyebrow">STEP 3 · 전문 액셀러레이터 분석</div>
+          <h1>강점·약점 진단</h1>
+          <p class="sub">입력하신 정보를 바탕으로 5개 영역을 진단했습니다.</p>
+          <div class="btn-row" style="margin-bottom:18px"><button class="btn ghost" onclick="goMypage()">← 마이페이지</button></div>
+          <div id="analysis-result">분석 중…</div>
+        </div>
+      </section>
+
+      <!-- ── STEP5 사업계획서 ── -->
+      <section id="view-plan" class="hidden">
+        <div class="card">
+          <div class="eyebrow">STEP 5 · 사업계획서</div>
+          <h1 id="plan-title">사업계획서 작성</h1>
+          <p class="sub">선택한 공고에 맞춰 섹션별 초안을 생성했습니다. 섹션마다 재생성할 수 있습니다.</p>
+          <div class="btn-row" style="margin-bottom:18px"><button class="btn ghost" onclick="goMatch()">← 매칭</button><button class="btn" onclick="goDeck()">발표 슬라이드 만들기 →</button></div>
+          <div id="plan-sections">생성 중…</div>
+          <div class="btn-row" style="margin-top:18px"><button class="btn ghost" onclick="downloadHwpx()">📄 hwpx 다운로드</button></div>
+        </div>
+      </section>
+
+      <!-- ── STEP6 발표 슬라이드 ── -->
+      <section id="view-deck" class="hidden">
+        <div class="card">
+          <div class="eyebrow">STEP 6 · 발표 슬라이드</div>
+          <h1>발표 슬라이드</h1>
+          <p class="sub">사업계획서를 발표 구조(9장)로 변환했습니다.</p>
+          <div class="btn-row" style="margin-bottom:18px"><button class="btn ghost" onclick="show('plan')">← 사업계획서</button><button class="btn" onclick="goConsult()">전문가 상담 신청 →</button></div>
+          <div id="deck-slides">생성 중…</div>
+        </div>
+      </section>
+
+      <!-- ── STEP7 전문가 컨설팅 ── -->
+      <section id="view-consult" class="hidden">
+        <div class="card">
+          <div class="eyebrow">STEP 7 · 전문가 컨설팅</div>
+          <h1>전문가 1:1 상담 신청</h1>
+          <p class="sub">지금까지 입력한 프로필·작업 내용이 컨설턴트에게 함께 전달됩니다.</p>
+          <div id="consult-msg" class="msg"></div>
+          <div class="field"><label>컨설팅 희망 영역</label>
+            <select id="c-area"><option>사업계획서 첨삭</option><option>발표 코칭</option><option>서류 준비</option><option>세무·노무</option></select>
+          </div>
+          <div class="field"><label>문의 내용</label><textarea id="c-message" placeholder="상담받고 싶은 내용을 적어주세요."></textarea></div>
+          <div class="btn-row"><button class="btn ghost" onclick="goMypage()">← 마이페이지</button><button class="btn" id="btn-consult" onclick="submitConsult()">상담 신청</button></div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <script>
+    const $ = (s) => document.querySelector(s);
+    const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+    let SEGMENTS = [];
+    let ME = null;
+
+    function show(view) {
+      ['auth','profile','mypage','match','item','analysis','plan','deck','consult'].forEach((v) => $('#view-' + v).classList.toggle('hidden', v !== view));
+      window.scrollTo(0, 0);
+    }
+    function setMsg(el, type, text) { el.className = 'msg ' + type; el.textContent = text; }
+    function clearMsg(el) { el.className = 'msg'; el.textContent = ''; }
+
+    // ── 인증 ──
+    function switchAuth(which) {
+      $('#tab-login').classList.toggle('active', which === 'login');
+      $('#tab-signup').classList.toggle('active', which === 'signup');
+      $('#form-login').classList.toggle('hidden', which !== 'login');
+      $('#form-signup').classList.toggle('hidden', which !== 'signup');
+      clearMsg($('#auth-msg'));
+    }
+    async function doSignup(e) {
+      e.preventDefault();
+      const f = e.target;
+      const payload = { name: f.name.value, phone: f.phone.value || null, email: f.email.value, password: f.password.value };
+      const r = await fetch('/api/auth/signup', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+      const d = await r.json();
+      if (d.success) { ME = d.user; await afterAuth(); }
+      else setMsg($('#auth-msg'), 'err', d.message || '가입에 실패했습니다.');
+    }
+    async function doLogin(e) {
+      e.preventDefault();
+      const f = e.target;
+      const r = await fetch('/api/auth/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ email:f.email.value, password:f.password.value }) });
+      const d = await r.json();
+      if (d.success) { ME = d.user; await afterAuth(); }
+      else setMsg($('#auth-msg'), 'err', d.message || '로그인에 실패했습니다.');
+    }
+    async function logout() {
+      await fetch('/api/auth/logout', { method:'POST' });
+      ME = null; renderHeader(); show('auth');
+    }
+
+    function renderHeader() {
+      const el = $('#h-right');
+      if (ME) el.innerHTML = `<a onclick="goMypage()">마이페이지</a><button class="pill" onclick="logout()">로그아웃</button>`;
+      else el.innerHTML = `<a class="pill" href="/">← 홈으로</a>`;
+    }
+
+    async function afterAuth() {
+      renderHeader();
+      const r = await fetch('/api/profile');
+      const d = await r.json();
+      if (d.profile) { renderMypage(d); show('mypage'); }
+      else { await loadSegments(); show('profile'); goTab(1); }
+    }
+
+    // ── 프로필 빌더 ──
+    async function loadSegments() {
+      if (SEGMENTS.length) return renderSegments();
+      const r = await fetch('/api/segments');
+      SEGMENTS = await r.json();
+      renderSegments();
+    }
+    function renderSegments(selected = []) {
+      $('#seg-grid').innerHTML = SEGMENTS.map((s) => `
+        <label class="seg-item" data-code="${esc(s.code)}">
+          <input type="checkbox" value="${esc(s.code)}" ${selected.includes(s.code)?'checked':''} onchange="this.closest('.seg-item').classList.toggle('checked',this.checked)" />
+          <span><span class="lbl">${esc(s.label)}</span><br><span class="def">${esc(s.definition||'')}</span></span>
+        </label>`).join('');
+      $('#seg-grid').querySelectorAll('.seg-item').forEach((el) => {
+        if (el.querySelector('input').checked) el.classList.add('checked');
+      });
+    }
+    function goTab(n) {
+      [1,2,3].forEach((i) => {
+        $('#ptab-' + i).classList.toggle('active', i === n);
+        const pill = $('#pill-' + i);
+        pill.classList.toggle('active', i === n);
+        pill.classList.toggle('done', i < n);
+      });
+      window.scrollTo(0, 0);
+    }
+    function selectedSegments() {
+      return [...document.querySelectorAll('#seg-grid input:checked')].map((c) => c.value);
+    }
+    async function saveProfile() {
+      const f = $('#form-profile');
+      const segs = selectedSegments();
+      if (!f.bizName.value.trim()) { setMsg($('#profile-msg'),'err','사업장명을 입력해주세요.'); goTab(1); return; }
+      if (!segs.length) { setMsg($('#profile-msg'),'err','세그먼트를 1개 이상 선택해주세요.'); goTab(1); return; }
+      const payload = {
+        bizName: f.bizName.value, foundedYear: f.foundedYear.value, industryCode: f.industryCode.value,
+        regionSido: f.regionSido.value, regionSigungu: f.regionSigungu.value,
+        employeeCnt: f.employeeCnt.value ? parseInt(f.employeeCnt.value) : null,
+        revenueBand: f.revenueBand.value, segments: segs,
+        bizSummary: f.bizSummary.value, productDesc: f.productDesc.value,
+        coreTech: f.coreTech.value, competitiveEdge: f.competitiveEdge.value,
+      };
+      const btn = $('#btn-save'); btn.disabled = true; btn.textContent = '저장 중…';
+      const r = await fetch('/api/profile', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+      const d = await r.json();
+      btn.disabled = false; btn.textContent = '프로필 저장하고 완료';
+      if (d.success) { const pr = await (await fetch('/api/profile')).json(); renderMypage(pr); show('mypage'); }
+      else setMsg($('#profile-msg'),'err', d.message || '저장에 실패했습니다.');
+    }
+
+    // ── 마이페이지 ──
+    function renderMypage(data) {
+      const p = data.profile || {};
+      $('#mp-greeting').textContent = `${ME?.name || ''}님, 반갑습니다 👋`;
+      const segLabels = (p.segments || []).map((c) => (SEGMENTS.find((s) => s.code === c)?.label) || c);
+      const rows = [
+        ['사업장명', p.biz_name], ['설립연도', p.founded_year], ['업종', p.industry_code],
+        ['지역', [p.region_sido, p.region_sigungu].filter(Boolean).join(' ')],
+        ['직원수', p.employee_cnt != null ? p.employee_cnt + '명' : ''], ['연매출', p.revenue_band],
+      ].filter(([,v]) => v);
+      $('#mp-summary').innerHTML =
+        rows.map(([k,v]) => `<div class="sum-item"><div class="k">${esc(k)}</div><div class="v">${esc(v)}</div></div>`).join('')
+        + `<div class="sum-item" style="grid-column:1/-1"><div class="k">세그먼트</div><div class="v">${segLabels.map((l) => `<span class="seg-tag">${esc(l)}</span>`).join('') || '-'}</div></div>`;
+    }
+    async function goMypage() {
+      const d = await (await fetch('/api/profile')).json();
+      if (!SEGMENTS.length) { try { SEGMENTS = await (await fetch('/api/segments')).json(); } catch(e){} }
+      if (d.profile) { renderMypage(d); show('mypage'); } else { await loadSegments(); show('profile'); goTab(1); }
+    }
+
+    // ── STEP4 매칭 ──
+    async function goMatch() {
+      show('match');
+      const el = $('#match-list');
+      el.innerHTML = '매칭 중…';
+      const r = await fetch('/api/match');
+      if (!r.ok) {
+        const e = await r.json().catch(() => ({}));
+        el.innerHTML = `<p class="sub">${esc(e.error || '매칭에 실패했습니다.')}</p>`;
+        return;
+      }
+      const d = await r.json();
+      if (!d.matches || !d.matches.length) {
+        el.innerHTML = '<p class="sub">현재 매칭되는 공고가 없습니다. 프로필을 보완해보세요.</p>';
+        return;
+      }
+      el.innerHTML = `<p class="sub" style="margin-bottom:14px">총 <b>${d.total}건</b> 매칭됐습니다</p>` +
+        d.matches.map((m) => `
+          <div class="match-card">
+            <div class="top">
+              <div><div class="name">${esc(m.name)}</div><div class="agency">${esc(m.agency)}${m.field ? ' · ' + esc(m.field) : ''} · ${esc(m.region)}</div></div>
+              <div class="badge">${m.matchScore}%</div>
+            </div>
+            <div class="amount">${esc(m.amount_text || '')}</div>
+            <div class="match-bar"><i style="width:${m.matchScore}%"></i></div>
+            <div class="ev">${(m.evidence || []).map((e) => `<span>${esc(e)}</span>`).join('')}</div>
+            <div class="btn-row" style="margin-top:12px"><button class="btn" style="padding:9px 16px;font-size:0.85rem" onclick="goPlan('${esc(m.program_id)}')">이 공고로 사업계획서 작성 →</button></div>
+          </div>`).join('');
+    }
+
+    // ── STEP2 아이템 정의 + AI 아이템명 (목업) ──
+    function goItem() { show('item'); clearMsg($('#item-msg')); $('#name-suggestions').innerHTML = ''; }
+    function itemPayload() {
+      return {
+        coreFunction: $('#i-core').value, customerBenefit: $('#i-benefit').value,
+        problemPoint: $('#i-problem').value, devPlan: $('#i-devplan').value,
+        strategies: [$('#i-s1').value, $('#i-s2').value, $('#i-s3').value].filter((s) => s.trim()),
+      };
+    }
+    async function genNames() {
+      const p = itemPayload();
+      if (p.strategies.length < 3) { setMsg($('#item-msg'), 'err', '차별화 전략 3가지를 모두 입력해주세요.'); return; }
+      const btn = $('#btn-gennames'); btn.disabled = true; btn.textContent = '생성 중…';
+      await fetch('/api/items', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(p) });
+      const r = await fetch('/api/items/name-suggestions', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+      btn.disabled = false; btn.textContent = 'AI 아이템명 생성 →';
+      const d = await r.json();
+      if (!d.suggestions) { setMsg($('#item-msg'), 'err', d.error || '생성에 실패했습니다.'); return; }
+      $('#name-suggestions').innerHTML =
+        `<div class="msg ok" style="display:block">AI가 제안한 아이템명 3안입니다${d.mock ? ' (목업)' : ''}. 하나를 선택하세요.</div>` +
+        d.suggestions.map((s) => `
+          <div class="match-card" style="cursor:pointer" onclick="selectName(${s.id}, this)">
+            <span class="seg-tag">${esc(s.type)}</span>
+            <div class="name" style="margin-top:6px">${esc(s.suggestion_text)}</div>
+          </div>`).join('');
+    }
+    async function selectName(id, el) {
+      await fetch(`/api/items/name-suggestions/${id}/select`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' } });
+      document.querySelectorAll('#name-suggestions .match-card').forEach((c) => { c.style.borderColor = ''; });
+      el.style.borderColor = 'var(--violet)';
+      setMsg($('#item-msg'), 'ok', '아이템명이 선택됐습니다. STEP3 분석 또는 STEP4 매칭으로 진행하세요.');
+    }
+
+    // ── STEP3 액셀러레이터 분석 (목업) ──
+    async function goAnalysis() {
+      show('analysis');
+      const el = $('#analysis-result'); el.innerHTML = '분석 중…';
+      const r = await fetch('/api/analysis', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+      if (!r.ok) { const e = await r.json().catch(() => ({})); el.innerHTML = `<p class="sub">${esc(e.error || '분석에 실패했습니다.')}</p>`; return; }
+      const d = await r.json();
+      const labels = { problem_fit: '문제-해결 적합성', market: '시장 크기·성장성', founder_fit: '실행 역량', differentiation: '차별성·진입장벽', scalability: '확장 가능성' };
+      const gauges = Object.entries(d.scores).map(([k, v]) => `
+        <div style="margin-bottom:12px">
+          <div style="display:flex;justify-content:space-between;font-size:0.85rem;margin-bottom:4px"><span>${labels[k] || k}</span><span class="data" style="font-weight:700;color:var(--violet)">${v}/5</span></div>
+          <div class="match-bar"><i style="width:${v * 20}%"></i></div>
+        </div>`).join('');
+      el.innerHTML =
+        `${d.mock ? '<div class="msg ok" style="display:block">목업 분석 결과입니다. (AI 연동 시 실제 진단으로 교체)</div>' : ''}
+        <h2 style="margin-top:8px">영역별 진단</h2>${gauges}
+        <h2 style="margin-top:20px">종합 강점</h2>${d.strengths.map((s) => `<div style="font-size:0.88rem;margin-bottom:6px">✓ ${esc(s.text)}</div>`).join('')}
+        <h2 style="margin-top:16px">보완 필요</h2>${d.gaps.map((g) => `<div style="font-size:0.88rem;margin-bottom:6px;color:var(--muted)">• ${esc(g.text)}</div>`).join('')}`;
+    }
+
+    // ── STEP5 사업계획서 / STEP6 슬라이드 / STEP7 컨설팅 (생성은 목업) ──
+    let CURRENT_PLAN_ID = null, CURRENT_DECK_ID = null, CURRENT_APP_ID = null;
+
+    async function goPlan(programId) {
+      show('plan');
+      $('#plan-sections').innerHTML = '생성 중…';
+      const r = await fetch('/api/plans/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ programId }) });
+      const d = await r.json();
+      if (!d.planId) { $('#plan-sections').innerHTML = `<p class="sub">${esc(d.error || '생성에 실패했습니다.')}</p>`; return; }
+      CURRENT_PLAN_ID = d.planId; CURRENT_APP_ID = d.applicationId;
+      $('#plan-title').textContent = `${d.programName} — 사업계획서`;
+      renderPlan(d.planId, true);
+    }
+    async function renderPlan(planId, mock) {
+      const d = await (await fetch(`/api/plans/${planId}`)).json();
+      $('#plan-sections').innerHTML = (mock ? '<div class="msg ok" style="display:block">목업 초안입니다 (AI 연동 시 공고 맞춤 생성으로 교체).</div>' : '') +
+        d.sections.map((s) => `
+          <div class="match-card">
+            <div class="top"><div class="name">${esc(s.section_title)}</div><button class="btn ghost" style="padding:6px 12px;font-size:0.8rem" onclick="regenSection('${esc(s.section_key)}')">재생성</button></div>
+            <div style="font-size:0.86rem;white-space:pre-wrap;margin-top:8px">${esc(s.content)}</div>
+          </div>`).join('');
+    }
+    async function regenSection(key) {
+      await fetch(`/api/plans/${CURRENT_PLAN_ID}/sections/${key}/regenerate`, { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+      renderPlan(CURRENT_PLAN_ID, false);
+    }
+    function downloadHwpx() { alert('hwpx 변환 서비스로 사업계획서를 한글(hwpx)로 출력합니다.\n현재는 목업 단계이며, AI 연동 후 실제 내용이 hwpx로 생성됩니다.'); }
+
+    async function goDeck() {
+      if (!CURRENT_PLAN_ID) { goMatch(); return; }
+      show('deck');
+      $('#deck-slides').innerHTML = '생성 중…';
+      const r = await fetch('/api/decks/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ planId: CURRENT_PLAN_ID }) });
+      const d = await r.json();
+      if (!d.deckId) { $('#deck-slides').innerHTML = `<p class="sub">${esc(d.error || '생성에 실패했습니다.')}</p>`; return; }
+      CURRENT_DECK_ID = d.deckId;
+      const dd = await (await fetch(`/api/decks/${d.deckId}`)).json();
+      $('#deck-slides').innerHTML = `<div class="msg ok" style="display:block">${d.slideCount}장 슬라이드 (목업)</div>` +
+        dd.slides.map((s) => `
+          <div class="match-card">
+            <span class="seg-tag">${s.order_no}. ${esc(s.slide_type)}</span>
+            <div class="name" style="margin-top:6px">${esc(s.headline)}</div>
+            <div style="font-size:0.8rem;color:var(--muted);margin-top:6px">${esc(s.visual_suggestion)}</div>
+          </div>`).join('');
+    }
+
+    function goConsult() { show('consult'); clearMsg($('#consult-msg')); }
+    async function submitConsult() {
+      const btn = $('#btn-consult'); btn.disabled = true; btn.textContent = '신청 중…';
+      const r = await fetch('/api/consulting', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ area: $('#c-area').value, message: $('#c-message').value, applicationId: CURRENT_APP_ID }) });
+      btn.disabled = false; btn.textContent = '상담 신청';
+      const d = await r.json();
+      if (d.success) setMsg($('#consult-msg'), 'ok', '상담 신청이 접수됐습니다. 전담 컨설턴트가 연락드립니다.');
+      else setMsg($('#consult-msg'), 'err', d.error || '신청에 실패했습니다.');
+    }
+    async function editProfile() {
+      await loadSegments();
+      const d = await (await fetch('/api/profile')).json();
+      const p = d.profile, b = d.business || {};
+      if (p) {
+        const f = $('#form-profile');
+        f.bizName.value = p.biz_name || ''; f.foundedYear.value = p.founded_year || '';
+        f.industryCode.value = p.industry_code || ''; f.regionSido.value = p.region_sido || '';
+        f.regionSigungu.value = p.region_sigungu || ''; f.employeeCnt.value = p.employee_cnt ?? '';
+        f.revenueBand.value = p.revenue_band || '';
+        f.bizSummary.value = b.biz_summary || ''; f.productDesc.value = b.product_desc || '';
+        f.coreTech.value = b.core_tech || ''; f.competitiveEdge.value = b.competitive_edge || '';
+        renderSegments(p.segments || []);
+      }
+      show('profile'); goTab(1);
+    }
+
+    // ── 초기화 ──
+    (async function init() {
+      try {
+        const r = await fetch('/api/auth/me');
+        if (r.ok) { const d = await r.json(); if (d.authenticated) { ME = d.user; renderHeader(); return afterAuth(); } }
+      } catch (e) {}
+      renderHeader(); show('auth');
+    })();
+  </script>
+</body>
+</html>

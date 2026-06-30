@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>어드민 — 이로운스타트</title>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <title>어드민 — 제로백스쿨</title>
+  <link rel="icon" href="/logo-zero100-square.png" />
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -14,14 +15,14 @@
       --border:   #e2e8f0;
       --text:     #1e293b;
       --muted:    #64748b;
-      --navy:     #1B3A6B;
-      --orange:   #FF6B2B;
+      --navy:     #7A2E9C;
+      --orange:   #E6197E;
       --green:    #059669;
       --blue:     #2563eb;
       --yellow:   #d97706;
       --red:      #dc2626;
     }
-    body { font-family: 'Noto Sans KR', sans-serif; background: var(--bg); color: var(--text); display: flex; min-height: 100vh; }
+    body { font-family: 'Pretendard Variable', -apple-system, sans-serif; background: var(--bg); color: var(--text); display: flex; min-height: 100vh; -webkit-font-smoothing: antialiased; }
 
     /* ── SIDEBAR ── */
     .sidebar {
@@ -45,6 +46,25 @@
       cursor: pointer; transition: all .15s; text-decoration: none;
     }
     .nav-item:hover, .nav-item.active { background: rgba(255,255,255,0.08); color: #fff; }
+    .nav-divider {
+      font-size: 0.66rem; font-weight: 700; letter-spacing: .05em;
+      color: rgba(255,255,255,0.28); text-transform: uppercase;
+      padding: 14px 12px 6px;
+    }
+    .area-badge {
+      display: inline-block; font-size: 0.72rem; font-weight: 700;
+      padding: 3px 9px; border-radius: 999px;
+      background: #ede9fe; color: #6d28d9;
+    }
+    .msg-clip {
+      display: block; max-width: 320px; color: var(--muted); font-size: 0.82rem;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .ctx-box {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 8px; padding: 12px 14px; font-size: 0.84rem; line-height: 1.7;
+    }
+    .ctx-box .k { color: var(--muted); margin-right: 6px; }
     .sidebar-footer {
       padding: 16px 12px;
       border-top: 1px solid rgba(255,255,255,0.08);
@@ -236,16 +256,19 @@
 <!-- SIDEBAR -->
 <aside class="sidebar">
   <div class="sidebar-logo">
-    <div class="name">⬛ 이로운스타트</div>
+    <img src="/logo-zero100-white.png" alt="제로백스쿨" style="height:24px;width:auto;display:block;margin-bottom:6px" />
     <div class="sub">어드민 패널</div>
   </div>
   <nav class="sidebar-nav">
-    <a class="nav-item active" href="/admin">📋 상담 신청 목록</a>
+    <a class="nav-item active" id="nav-submissions" onclick="showView('submissions')">📋 상담 신청 목록</a>
+    <a class="nav-item" id="nav-consulting" onclick="showView('consulting')">🎓 전문가 컨설팅 신청</a>
+    <div class="nav-divider">상담 빠른 필터</div>
     <a class="nav-item" href="/admin?type=예비창업자">🚀 예비창업자</a>
     <a class="nav-item" href="/admin?type=소상공인">🏪 소상공인</a>
     <a class="nav-item" href="/admin?status=pending">⏳ 대기중</a>
     <a class="nav-item" href="/admin?status=contacted">💬 상담중</a>
     <a class="nav-item" href="/admin?status=completed">✅ 완료</a>
+    <div class="nav-divider">바로가기</div>
     <a class="nav-item" href="/" target="_blank">🌐 랜딩페이지</a>
   </nav>
   <div class="sidebar-footer">
@@ -258,14 +281,17 @@
 
   <!-- TOP BAR -->
   <div class="topbar">
-    <h1>상담 신청 관리</h1>
+    <h1 id="topbar-title">상담 신청 관리</h1>
     <div class="topbar-right">
-      <button class="export-btn" onclick="exportCSV()">📥 CSV 내보내기</button>
+      <button class="export-btn" id="export-btn" onclick="exportCSV()">📥 CSV 내보내기</button>
     </div>
   </div>
 
   <!-- CONTENT -->
   <div class="content">
+
+    <!-- ══════ VIEW: 상담 신청 ══════ -->
+    <div id="view-submissions">
 
     <!-- STATS -->
     <div class="stats-grid" id="stats-grid">
@@ -320,6 +346,52 @@
       </div>
     </div>
 
+    </div><!-- /view-submissions -->
+
+    <!-- ══════ VIEW: 전문가 컨설팅 신청 ══════ -->
+    <div id="view-consulting" style="display:none">
+
+      <!-- STATS -->
+      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
+        <div class="stat-card c-total">   <div class="label">전체 신청</div><div class="num" id="cs-total">-</div><div class="sub">누적</div></div>
+        <div class="stat-card c-pending"> <div class="label">대기중</div><div class="num" id="cs-pending">-</div><div class="sub">연락 필요</div></div>
+        <div class="stat-card c-contact"> <div class="label">상담중</div><div class="num" id="cs-contacted">-</div></div>
+        <div class="stat-card c-complete"><div class="label">완료</div><div class="num" id="cs-completed">-</div></div>
+      </div>
+
+      <!-- FILTER -->
+      <div class="filter-bar">
+        <select id="cf-status" onchange="loadConsulting()">
+          <option value="">전체 상태</option>
+          <option value="pending">대기중</option>
+          <option value="contacted">상담중</option>
+          <option value="completed">완료</option>
+        </select>
+        <button class="reset-btn" onclick="document.getElementById('cf-status').value='';loadConsulting()">초기화</button>
+      </div>
+
+      <!-- TABLE -->
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>신청자</th>
+              <th>연락처</th>
+              <th>분야</th>
+              <th>요청 내용</th>
+              <th>접수일</th>
+              <th>상태</th>
+            </tr>
+          </thead>
+          <tbody id="consulting-body">
+            <tr><td class="no-data" colspan="7">데이터 로딩 중...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div><!-- /view-consulting -->
+
   </div>
 </div>
 
@@ -335,6 +407,8 @@
 </div>
 
 <script>
+  // 사용자 입력을 innerHTML에 넣기 전 HTML 이스케이프 (저장형 XSS 방어)
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
   let currentPage = 1;
   let currentData = [];
 
@@ -395,7 +469,7 @@
       const industry  = r.business_type || r.industry || r.current_status || '-';
       const interests = (r.interests || []).slice(0, 2).map(i => {
         const short = i.replace(/\(.*?\)/g,'').replace('어떤 게 맞는지 모르겠어요','추천 요청').trim().slice(0, 15);
-        return `<span class="interest-tag">${short}</span>`;
+        return `<span class="interest-tag">${esc(short)}</span>`;
       }).join('');
       const statusClass = `status-${r.status}`;
       const statusLabel = { pending: '대기중', contacted: '상담중', completed: '완료' }[r.status] || r.status;
@@ -403,10 +477,10 @@
       return `
         <tr onclick="openModal(${r.id})">
           <td style="color:var(--muted);font-size:.78rem">#${r.id}</td>
-          <td><span class="type-badge ${typeClass}">${r.type}</span></td>
-          <td style="font-weight:600">${r.name}</td>
-          <td>${r.phone}</td>
-          <td style="color:var(--muted);font-size:.82rem">${industry}</td>
+          <td><span class="type-badge ${typeClass}">${esc(r.type)}</span></td>
+          <td style="font-weight:600">${esc(r.name)}</td>
+          <td>${esc(r.phone)}</td>
+          <td style="color:var(--muted);font-size:.82rem">${esc(industry)}</td>
           <td>${interests || '<span style="color:var(--muted);font-size:.78rem">-</span>'}</td>
           <td style="color:var(--muted);font-size:.78rem">${date}</td>
           <td onclick="event.stopPropagation()">
@@ -461,29 +535,29 @@
     if (!r) return;
 
     document.getElementById('modal-title').textContent = `#${r.id} ${r.name} 상담 상세`;
-    const interestList = (r.interests || []).map(i => `<span class="interest-tag">${i}</span>`).join(' ');
+    const interestList = (r.interests || []).map(i => `<span class="interest-tag">${esc(i)}</span>`).join(' ');
     const statusLabel  = { pending: '⏳ 대기중', contacted: '💬 상담중', completed: '✅ 완료' }[r.status];
     const industry     = r.business_type || r.industry || '-';
 
     document.getElementById('modal-body').innerHTML = `
       <div class="detail-grid">
-        <div class="detail-item"><div class="dl">유형</div><div class="dv">${r.type}</div></div>
+        <div class="detail-item"><div class="dl">유형</div><div class="dv">${esc(r.type)}</div></div>
         <div class="detail-item"><div class="dl">상태</div><div class="dv">${statusLabel}</div></div>
-        <div class="detail-item"><div class="dl">이름</div><div class="dv">${r.name}</div></div>
-        <div class="detail-item"><div class="dl">연락처</div><div class="dv"><a href="tel:${r.phone}">${r.phone}</a></div></div>
-        ${r.current_status ? `<div class="detail-item"><div class="dl">현재 상태</div><div class="dv">${r.current_status}</div></div>` : ''}
-        ${r.business_type  ? `<div class="detail-item"><div class="dl">창업 예정 업종</div><div class="dv">${r.business_type}</div></div>` : ''}
-        ${r.business_name  ? `<div class="detail-item"><div class="dl">상호명</div><div class="dv">${r.business_name}</div></div>` : ''}
-        ${r.industry       ? `<div class="detail-item"><div class="dl">업종</div><div class="dv">${r.industry}</div></div>` : ''}
-        ${r.operation_period ? `<div class="detail-item"><div class="dl">사업 기간</div><div class="dv">${r.operation_period}</div></div>` : ''}
-        ${r.employee_count   ? `<div class="detail-item"><div class="dl">직원 수</div><div class="dv">${r.employee_count}</div></div>` : ''}
+        <div class="detail-item"><div class="dl">이름</div><div class="dv">${esc(r.name)}</div></div>
+        <div class="detail-item"><div class="dl">연락처</div><div class="dv"><a href="tel:${esc(r.phone)}">${esc(r.phone)}</a></div></div>
+        ${r.current_status ? `<div class="detail-item"><div class="dl">현재 상태</div><div class="dv">${esc(r.current_status)}</div></div>` : ''}
+        ${r.business_type  ? `<div class="detail-item"><div class="dl">창업 예정 업종</div><div class="dv">${esc(r.business_type)}</div></div>` : ''}
+        ${r.business_name  ? `<div class="detail-item"><div class="dl">상호명</div><div class="dv">${esc(r.business_name)}</div></div>` : ''}
+        ${r.industry       ? `<div class="detail-item"><div class="dl">업종</div><div class="dv">${esc(r.industry)}</div></div>` : ''}
+        ${r.operation_period ? `<div class="detail-item"><div class="dl">사업 기간</div><div class="dv">${esc(r.operation_period)}</div></div>` : ''}
+        ${r.employee_count   ? `<div class="detail-item"><div class="dl">직원 수</div><div class="dv">${esc(r.employee_count)}</div></div>` : ''}
         <div class="detail-item" style="grid-column:1/-1"><div class="dl">접수일</div><div class="dv">${new Date(r.created_at).toLocaleString('ko-KR')}</div></div>
       </div>
       ${r.interests?.length ? `<div class="detail-full"><div class="dl">관심 지원사업</div><div class="dv">${interestList}</div></div>` : ''}
-      ${r.message ? `<div class="detail-full"><div class="dl">문의 내용</div><div class="dv">${r.message}</div></div>` : ''}
+      ${r.message ? `<div class="detail-full"><div class="dl">문의 내용</div><div class="dv">${esc(r.message)}</div></div>` : ''}
       <div class="detail-full">
         <div class="dl">어드민 메모</div>
-        <textarea class="memo-area" id="memo-input" placeholder="상담 내용, 진행 상황 등 메모를 입력하세요...">${r.memo || ''}</textarea>
+        <textarea class="memo-area" id="memo-input" placeholder="상담 내용, 진행 상황 등 메모를 입력하세요...">${esc(r.memo)}</textarea>
       </div>
       <div class="modal-actions">
         <button class="save-btn" onclick="saveMemo(${r.id})">메모 저장</button>
@@ -526,6 +600,139 @@
   document.getElementById('f-q').addEventListener('keydown', e => {
     if (e.key === 'Enter') loadData(1);
   });
+
+  // ════════════════════════════════════════════
+  //  뷰 전환 (상담 신청 ⇄ 전문가 컨설팅)
+  // ════════════════════════════════════════════
+  let consultingLoaded = false;
+  let consultingData = [];
+
+  function showView(view) {
+    const isSub = view === 'submissions';
+    document.getElementById('view-submissions').style.display = isSub ? '' : 'none';
+    document.getElementById('view-consulting').style.display  = isSub ? 'none' : '';
+    document.getElementById('nav-submissions').classList.toggle('active', isSub);
+    document.getElementById('nav-consulting').classList.toggle('active', !isSub);
+    document.getElementById('topbar-title').textContent = isSub ? '상담 신청 관리' : '전문가 컨설팅 신청 관리';
+    document.getElementById('export-btn').style.display = isSub ? '' : 'none';
+    if (!isSub && !consultingLoaded) loadConsulting();
+  }
+
+  // ── 컨설팅 목록 로드 ──
+  async function loadConsulting() {
+    consultingLoaded = true;
+    const status = document.getElementById('cf-status').value;
+    const params = new URLSearchParams();
+    if (status) params.set('status', status);
+
+    document.getElementById('consulting-body').innerHTML =
+      '<tr><td class="no-data" colspan="7">로딩 중...</td></tr>';
+
+    try {
+      const res  = await fetch('/api/admin/consulting?' + params);
+      const json = await res.json();
+      consultingData = json.data || [];
+      renderConsulting();
+      renderConsultingStats();
+    } catch (e) {
+      document.getElementById('consulting-body').innerHTML =
+        '<tr><td class="no-data" colspan="7">데이터 로드 실패</td></tr>';
+    }
+  }
+
+  function renderConsultingStats() {
+    // 필터된 목록이 아닌 전체 카운트를 위해 항상 무필터 통계 별도 조회
+    fetch('/api/admin/consulting').then(r => r.json()).then(json => {
+      const all = json.data || [];
+      document.getElementById('cs-total').textContent     = all.length;
+      document.getElementById('cs-pending').textContent   = all.filter(r => r.status === 'pending').length;
+      document.getElementById('cs-contacted').textContent = all.filter(r => r.status === 'contacted').length;
+      document.getElementById('cs-completed').textContent = all.filter(r => r.status === 'completed').length;
+    }).catch(() => {});
+  }
+
+  function renderConsulting() {
+    const tbody = document.getElementById('consulting-body');
+    if (!consultingData.length) {
+      tbody.innerHTML = '<tr><td class="no-data" colspan="7">컨설팅 신청 내역이 없습니다.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = consultingData.map(r => {
+      const statusClass = `status-${r.status}`;
+      const date    = new Date(r.created_at).toLocaleString('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+      const contact = r.user_phone || r.user_email || '-';
+      const area    = r.area || '-';
+      return `
+        <tr onclick="openConsultingModal(${r.id})">
+          <td style="color:var(--muted);font-size:.78rem">#${r.id}</td>
+          <td style="font-weight:600">${esc(r.user_name || '(탈퇴 회원)')}</td>
+          <td>${esc(contact)}</td>
+          <td><span class="area-badge">${esc(area)}</span></td>
+          <td><span class="msg-clip">${esc(r.message || '-')}</span></td>
+          <td style="color:var(--muted);font-size:.78rem">${date}</td>
+          <td onclick="event.stopPropagation()">
+            <select class="status-sel ${statusClass}" onchange="updateConsultingStatus(${r.id}, this)">
+              <option value="pending"   ${r.status==='pending'  ?'selected':''}>대기중</option>
+              <option value="contacted" ${r.status==='contacted'?'selected':''}>상담중</option>
+              <option value="completed" ${r.status==='completed'?'selected':''}>완료</option>
+            </select>
+          </td>
+        </tr>`;
+    }).join('');
+  }
+
+  async function updateConsultingStatus(id, sel) {
+    const status = sel.value;
+    sel.className = `status-sel status-${status}`;
+    await fetch(`/api/admin/consulting/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status }),
+    });
+    const item = consultingData.find(x => x.id === id);
+    if (item) item.status = status;
+    renderConsultingStats();
+  }
+
+  // ── 컨설팅 상세 모달 (회원 컨텍스트 스냅샷 포함) ──
+  function openConsultingModal(id) {
+    const r = consultingData.find(x => x.id === id);
+    if (!r) return;
+
+    const area        = r.area || '-';
+    const statusLabel = { pending: '⏳ 대기중', contacted: '💬 상담중', completed: '✅ 완료' }[r.status] || r.status;
+    const ctx     = r.context || {};
+    const profile = ctx.profile || {};
+    const user    = ctx.user || {};
+    const segs    = Array.isArray(profile.segments) ? profile.segments.join(', ') : (profile.segments || '-');
+
+    document.getElementById('modal-title').textContent = `#${r.id} ${r.user_name || ''} 컨설팅 신청`;
+    document.getElementById('modal-body').innerHTML = `
+      <div class="detail-grid">
+        <div class="detail-item"><div class="dl">신청자</div><div class="dv">${esc(r.user_name || user.name || '(탈퇴 회원)')}</div></div>
+        <div class="detail-item"><div class="dl">상태</div><div class="dv">${statusLabel}</div></div>
+        <div class="detail-item"><div class="dl">이메일</div><div class="dv">${esc(r.user_email || user.email || '-')}</div></div>
+        <div class="detail-item"><div class="dl">연락처</div><div class="dv">${r.user_phone ? `<a href="tel:${esc(r.user_phone)}">${esc(r.user_phone)}</a>` : '-'}</div></div>
+        <div class="detail-item"><div class="dl">컨설팅 분야</div><div class="dv">${esc(area)}</div></div>
+        <div class="detail-item"><div class="dl">접수일</div><div class="dv">${new Date(r.created_at).toLocaleString('ko-KR')}</div></div>
+      </div>
+      <div class="detail-full">
+        <div class="dl">요청 내용</div>
+        <div class="dv">${r.message ? esc(r.message) : '<span style="color:var(--muted)">내용 없음</span>'}</div>
+      </div>
+      <div class="detail-full">
+        <div class="dl">회원 컨텍스트 (신청 시점 스냅샷)</div>
+        <div class="ctx-box">
+          <div><span class="k">상호명</span>${esc(profile.biz_name || '-')}</div>
+          <div><span class="k">고객 세그먼트</span>${esc(segs)}</div>
+          <div><span class="k">업종코드</span>${esc(profile.industry_code || '-')}</div>
+          <div><span class="k">지역</span>${esc(profile.region_sido || '-')}</div>
+          ${r.application_id ? `<div><span class="k">연계 지원건 ID</span>#${esc(r.application_id)}</div>` : ''}
+        </div>
+      </div>`;
+
+    document.getElementById('modal').classList.add('open');
+  }
 
   // 초기 로드
   loadStats();

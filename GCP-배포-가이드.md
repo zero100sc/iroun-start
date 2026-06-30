@@ -63,13 +63,23 @@ gcloud sql databases create iroun_db --instance=iroun-db
 
 ---
 
-## 4단계: 테이블 생성
+## 4단계: 테이블 생성 (마이그레이션)
 
+이 프로젝트는 `migrations/` 폴더로 DB 스키마를 관리합니다 (`npm run migrate`).
+
+**방법 A — SQL 직접 붙여넣기 (간단):**
 ```bash
-# Cloud SQL에 스키마 적용
 gcloud sql connect iroun-db --user=postgres --database=iroun_db
 ```
-(접속 후 schema.sql 내용 붙여넣기)
+접속 후 `migrations/001_init_submissions_admins.sql` → `migrations/002_users_profiles_sessions.sql` 내용을 **순서대로** 붙여넣어 실행합니다.
+
+**방법 B — 마이그레이션 러너 (권장):**
+Cloud SQL Auth Proxy로 로컬에서 DB에 연결한 뒤:
+```bash
+# .env 의 DATABASE_URL 을 프록시 경유로 설정 후
+npm run migrate
+```
+이후 새 마이그레이션은 `migrations/00X_*.sql` 파일을 추가하고 `npm run migrate` 만 다시 실행하면 됩니다(적용 이력은 `schema_migrations` 테이블이 관리).
 
 ---
 
