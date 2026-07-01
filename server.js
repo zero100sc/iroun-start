@@ -27,11 +27,18 @@ if (missingEnv.length) {
 app.set('trust proxy', 1); // Cloud Run이 HTTPS를 종료하므로 secure 쿠키 인식을 위해 필요
 
 // ── DB 풀 ──────────────────────────────────────────────
+// Cloud SQL db-f1-micro는 max_connections가 낮음(≈25). Cloud Run 인스턴스마다 풀이 열리므로
+// 풀을 작게(max) + 유휴 커넥션을 빨리 반환(idleTimeout)해서 커넥션 고갈을 방지한다.
+// 총 커넥션 ≈ (Cloud Run max-instances) × PG_POOL_MAX + 마이그레이션(1). max-instances는 배포 시 제한.
 const dbUrl  = process.env.DATABASE_URL || '';
 const useSSL = !dbUrl.includes('/cloudsql/') && !dbUrl.includes('localhost') && !dbUrl.includes('127.0.0.1');
 const pool   = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: useSSL ? { rejectUnauthorized: false } : false,
+  max: parseInt(process.env.PG_POOL_MAX || '5', 10), // 인스턴스당 최대 커넥션 (f1-micro 대비 보수적)
+  idleTimeoutMillis: 10000,      // 유휴 10초 후 커넥션 반환/종료 — "바로바로 끊기"
+  connectionTimeoutMillis: 5000, // 풀 고갈 시 무한 대기 대신 5초 내 실패
+  allowExitOnIdle: true,         // 유휴 시 커넥션 정리 허용
 });
 
 // ── 보안 헤더 ──────────────────────────────────────────

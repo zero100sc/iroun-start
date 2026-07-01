@@ -1,0 +1,22 @@
+# Render Blueprint — ZERO100 스테이징 (무료 플랜)
+# Neon(무료 Postgres) + Render(무료 웹). 카드/빌링 불필요.
+services:
+  - type: web
+    name: zero100
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free                 # 무료 (15분 유휴 시 슬립 → 콜드스타트 ~1분)
+    region: singapore          # 무료 리전 중 한국에서 가장 가까움
+    healthCheckPath: /
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SESSION_SECRET
+        generateValue: true    # Render가 무작위 생성
+      - key: ADMIN_PASSWORD
+        sync: false            # 대시보드에서 직접 설정
+      - key: DATABASE_URL
+        sync: false            # Neon 연결 문자열을 대시보드에서 설정
+      - key: PG_POOL_MAX
+        value: "3"             # 무료 인스턴스 + Neon 커넥션 한도 고려해 작게
