@@ -6,33 +6,52 @@
   <title>제로백스쿨 — 내 워크스페이스</title>
   <link rel="icon" href="/logo-zero100-square.png" />
   <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
   <style>
     :root {
       --ink:#0B1B34; --violet:#7A2E9C; --magenta:#E6197E;
       --grad:linear-gradient(120deg,#7A2E9C,#E6197E);
       --paper:#F7F6FB; --line:#E7E4F0; --text:#1B1726; --muted:#6A6380;
+      --data:'Space Grotesk','Pretendard Variable',sans-serif;
     }
+    .data{font-family:var(--data);font-feature-settings:"tnum";}
+    @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important;}}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
     body{font-family:'Pretendard Variable',-apple-system,sans-serif;background:var(--paper);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased;}
     a{color:inherit;text-decoration:none;}
     .wrap{max-width:760px;margin:0 auto;padding:0 20px;}
     a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2.5px solid var(--magenta);outline-offset:3px;border-radius:6px;}
 
-    header{position:sticky;top:0;z-index:10;background:#fff;border-bottom:1px solid var(--line);height:64px;display:flex;align-items:center;}
-    header .wrap{display:flex;align-items:center;justify-content:space-between;max-width:980px;}
+    header{position:sticky;top:0;z-index:10;background:#fff;border-bottom:1px solid var(--line);}
+    header .wrap{display:flex;align-items:center;justify-content:space-between;height:64px;max-width:760px;width:100%;}
     header img{height:30px;width:auto;display:block;}
     .h-right{display:flex;align-items:center;gap:14px;}
     .h-right a,.h-right button{font-size:0.88rem;color:var(--muted);font-weight:600;background:none;border:none;cursor:pointer;font-family:inherit;}
     .h-right a:hover,.h-right button:hover{color:var(--violet);}
     .h-right .pill{display:inline-flex;align-items:center;gap:6px;padding:7px 15px;border:1px solid var(--line);border-radius:999px;line-height:1;transition:border-color .15s,color .15s;}
     .h-right .pill:hover{border-color:var(--violet);color:var(--violet);}
+    .h-right .uname{color:var(--text);font-weight:700;}
+
+    /* 7단계 진행 네비게이션 */
+    #step-nav{position:sticky;top:64px;z-index:9;background:#fff;border-bottom:1px solid var(--line);}
+    .snav-wrap{display:flex;gap:6px;align-items:center;height:52px;max-width:760px;margin:0 auto;padding:0 20px;overflow-x:auto;scrollbar-width:thin;}
+    .snav-wrap::-webkit-scrollbar{height:5px;}
+    .snav-wrap::-webkit-scrollbar-thumb{background:#d9cfe8;border-radius:9px;}
+    .snav{flex:0 0 auto;display:inline-flex;align-items:center;gap:7px;padding:7px 14px;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--muted);font-size:0.82rem;font-weight:700;font-family:inherit;cursor:pointer;white-space:nowrap;transition:all .15s;}
+    .snav .n{display:inline-flex;align-items:center;justify-content:center;width:19px;height:19px;border-radius:50%;background:#efe7f5;color:var(--violet);font-size:0.72rem;font-weight:800;transition:all .15s;}
+    .snav:hover{border-color:#cdbfe6;color:var(--text);}
+    .snav.done{color:var(--violet);border-color:#e0d3ef;}
+    .snav.done .n{background:var(--violet);color:#fff;}
+    .snav.cur{background:var(--grad);color:#fff;border-color:transparent;box-shadow:0 4px 14px rgba(122,46,156,0.28);}
+    .snav.cur .n{background:rgba(255,255,255,0.28);color:#fff;}
 
     main{padding:40px 0 80px;}
     .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:32px;margin-bottom:18px;}
     h1{font-size:1.5rem;font-weight:800;letter-spacing:-0.02em;margin-bottom:8px;}
     h2{font-size:1.15rem;font-weight:700;margin-bottom:16px;letter-spacing:-0.01em;}
     .sub{color:var(--muted);font-size:0.94rem;margin-bottom:24px;}
-    .eyebrow{font-size:0.74rem;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:var(--magenta);margin-bottom:10px;}
+    .eyebrow{font-size:0.74rem;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:var(--magenta);margin-bottom:10px;display:inline-flex;align-items:center;gap:8px;}
+    .eyebrow::before{content:'';width:22px;height:1.5px;background:var(--magenta);display:inline-block;flex-shrink:0;}
 
     label{display:block;font-size:0.84rem;font-weight:600;margin-bottom:7px;}
     .req{color:var(--magenta);}
@@ -111,6 +130,18 @@
     </div>
   </header>
 
+  <nav id="step-nav" aria-label="진행 단계" style="display:none">
+    <div class="snav-wrap">
+      <button class="snav" id="snav-1" onclick="navStep(1)"><span class="n">1</span>프로필</button>
+      <button class="snav" id="snav-2" onclick="navStep(2)"><span class="n">2</span>아이템</button>
+      <button class="snav" id="snav-3" onclick="navStep(3)"><span class="n">3</span>분석</button>
+      <button class="snav" id="snav-4" onclick="navStep(4)"><span class="n">4</span>매칭</button>
+      <button class="snav" id="snav-5" onclick="navStep(5)"><span class="n">5</span>계획서</button>
+      <button class="snav" id="snav-6" onclick="navStep(6)"><span class="n">6</span>발표</button>
+      <button class="snav" id="snav-7" onclick="navStep(7)"><span class="n">7</span>컨설팅</button>
+    </div>
+  </nav>
+
   <main>
     <div class="wrap">
 
@@ -126,23 +157,23 @@
             <button id="tab-signup" onclick="switchAuth('signup')">회원가입</button>
           </div>
 
-          <div id="auth-msg" class="msg"></div>
+          <div id="auth-msg" class="msg" aria-live="polite"></div>
 
           <!-- 로그인 -->
           <form id="form-login" onsubmit="doLogin(event)">
-            <div class="field"><label>이메일 <span class="req">*</span></label><input type="email" name="email" placeholder="you@example.com" required /></div>
-            <div class="field"><label>비밀번호 <span class="req">*</span></label><input type="password" name="password" placeholder="비밀번호" required /></div>
+            <div class="field"><label for="login-email">이메일 <span class="req">*</span></label><input id="login-email" type="email" name="email" placeholder="you@example.com" required /></div>
+            <div class="field"><label for="login-password">비밀번호 <span class="req">*</span></label><input id="login-password" type="password" name="password" placeholder="비밀번호" required /></div>
             <button class="btn full" type="submit">로그인</button>
           </form>
 
           <!-- 회원가입 -->
           <form id="form-signup" class="hidden" onsubmit="doSignup(event)">
             <div class="row">
-              <div class="field"><label>이름 <span class="req">*</span></label><input type="text" name="name" placeholder="홍길동" required /></div>
-              <div class="field"><label>연락처</label><input type="text" name="phone" placeholder="010-0000-0000" /></div>
+              <div class="field"><label for="signup-name">이름 <span class="req">*</span></label><input id="signup-name" type="text" name="name" placeholder="홍길동" required /></div>
+              <div class="field"><label for="signup-phone">연락처</label><input id="signup-phone" type="text" name="phone" placeholder="010-0000-0000" /></div>
             </div>
-            <div class="field"><label>이메일 <span class="req">*</span></label><input type="email" name="email" placeholder="you@example.com" required /></div>
-            <div class="field"><label>비밀번호 <span class="req">*</span> <span style="color:var(--muted);font-weight:500;font-size:0.78rem">(8자 이상)</span></label><input type="password" name="password" placeholder="비밀번호" minlength="8" required /></div>
+            <div class="field"><label for="signup-email">이메일 <span class="req">*</span></label><input id="signup-email" type="email" name="email" placeholder="you@example.com" required /></div>
+            <div class="field"><label for="signup-password">비밀번호 <span class="req">*</span> <span style="color:var(--muted);font-weight:500;font-size:0.78rem">(8자 이상)</span></label><input id="signup-password" type="password" name="password" placeholder="비밀번호" minlength="8" required /></div>
             <button class="btn full" type="submit">가입하고 시작하기</button>
           </form>
         </div>
@@ -151,7 +182,7 @@
       <!-- ── STEP1 프로필 빌더 ── -->
       <section id="view-profile" class="hidden">
         <div class="card">
-          <div class="eyebrow">STEP 1 · 고객 프로필</div>
+          <div class="eyebrow">STEP 1 · 내 프로필</div>
           <h1>내 정보 입력</h1>
           <p class="sub">이후 모든 단계(아이템 정의 · 매칭 · 사업계획서)의 기초가 되는 정보입니다. 한 번만 입력하면 됩니다.</p>
 
@@ -161,34 +192,34 @@
             <div class="step-pill" id="pill-3">3. 자금·경험</div>
           </div>
 
-          <div id="profile-msg" class="msg"></div>
+          <div id="profile-msg" class="msg" aria-live="polite"></div>
 
           <form id="form-profile" onsubmit="return false">
             <!-- Tab 1 기본정보 -->
             <div class="tab-panel active" id="ptab-1">
-              <div class="field"><label>사업장명(예정 포함) <span class="req">*</span></label><input type="text" name="bizName" placeholder="예) 제로백 컴퍼니 (예비창업자는 예정 상호명)" required /></div>
+              <div class="field"><label for="pf-bizName">사업장명(예정 포함) <span class="req">*</span></label><input id="pf-bizName" type="text" name="bizName" placeholder="예) 제로백 컴퍼니 (예비창업자는 예정 상호명)" required /></div>
               <div class="row">
-                <div class="field"><label>설립연도</label>
-                  <select name="foundedYear"><option value="">선택</option><option>설립 전</option><option>2026</option><option>2025</option><option>2024</option><option>2023</option><option>2022 이전</option></select>
+                <div class="field"><label for="pf-foundedYear">설립연도</label>
+                  <select id="pf-foundedYear" name="foundedYear"><option value="">선택</option><option>설립 전</option><option>2026</option><option>2025</option><option>2024</option><option>2023</option><option>2022 이전</option></select>
                 </div>
-                <div class="field"><label>업종/업태</label>
-                  <select name="industryCode"><option value="">선택</option><option>IT·소프트웨어</option><option>제조·하드웨어</option><option>유통·이커머스</option><option>식품·외식</option><option>뷰티·패션</option><option>교육·콘텐츠</option><option>바이오·헬스케어</option><option>기타 서비스업</option></select>
+                <div class="field"><label for="pf-industryCode">업종/업태</label>
+                  <select id="pf-industryCode" name="industryCode"><option value="">선택</option><option>IT·소프트웨어</option><option>제조·하드웨어</option><option>유통·이커머스</option><option>식품·외식</option><option>뷰티·패션</option><option>교육·콘텐츠</option><option>바이오·헬스케어</option><option>기타 서비스업</option></select>
                 </div>
               </div>
               <div class="row">
-                <div class="field"><label>본사 위치(시/도)</label>
-                  <select name="regionSido"><option value="">선택</option><option>서울</option><option>경기</option><option>인천</option><option>부산</option><option>대구</option><option>광주</option><option>대전</option><option>울산</option><option>세종</option><option>강원</option><option>충북</option><option>충남</option><option>전북</option><option>전남</option><option>경북</option><option>경남</option><option>제주</option></select>
+                <div class="field"><label for="pf-regionSido">본사 위치(시/도)</label>
+                  <select id="pf-regionSido" name="regionSido"><option value="">선택</option><option>서울</option><option>경기</option><option>인천</option><option>부산</option><option>대구</option><option>광주</option><option>대전</option><option>울산</option><option>세종</option><option>강원</option><option>충북</option><option>충남</option><option>전북</option><option>전남</option><option>경북</option><option>경남</option><option>제주</option></select>
                 </div>
-                <div class="field"><label>시/군/구</label><input type="text" name="regionSigungu" placeholder="예) 강남구" /></div>
+                <div class="field"><label for="pf-regionSigungu">시/군/구</label><input id="pf-regionSigungu" type="text" name="regionSigungu" placeholder="예) 강남구" /></div>
               </div>
               <div class="row">
-                <div class="field"><label>직원수</label><input type="number" name="employeeCnt" min="0" placeholder="대표 포함 인원" /></div>
-                <div class="field"><label>연매출</label>
-                  <select name="revenueBand"><option value="">선택</option><option>무매출/예비창업</option><option>1억 미만</option><option>1~5억</option><option>5~10억</option><option>10억 이상</option></select>
+                <div class="field"><label for="pf-employeeCnt">직원 수</label><input id="pf-employeeCnt" type="number" name="employeeCnt" min="0" placeholder="대표 포함 인원" /></div>
+                <div class="field"><label for="pf-revenueBand">연매출</label>
+                  <select id="pf-revenueBand" name="revenueBand"><option value="">선택</option><option>무매출/예비창업</option><option>1억 미만</option><option>1~5억</option><option>5~10억</option><option>10억 이상</option></select>
                 </div>
               </div>
               <div class="field">
-                <label>고객 세그먼트 <span class="req">*</span> <span style="color:var(--muted);font-weight:500;font-size:0.78rem">(복수 선택)</span></label>
+                <label>내 사업 유형(세그먼트) <span class="req">*</span> <span style="color:var(--muted);font-weight:500;font-size:0.78rem">(복수 선택)</span></label>
                 <div class="seg-grid" id="seg-grid">불러오는 중…</div>
               </div>
               <div class="btn-row"><button type="button" class="btn" onclick="goTab(2)">다음 →</button></div>
@@ -196,21 +227,21 @@
 
             <!-- Tab 2 사업정보 -->
             <div class="tab-panel" id="ptab-2">
-              <div class="field"><label>사업 개요 <span style="color:var(--muted);font-weight:500;font-size:0.78rem">(최대 1000자)</span></label><textarea name="bizSummary" maxlength="1000" placeholder="어떤 사업인지 간단히 적어주세요."></textarea></div>
-              <div class="field"><label>제품/서비스 설명</label><textarea name="productDesc" placeholder="제품·서비스의 핵심을 적어주세요."></textarea></div>
-              <div class="field"><label>핵심 기술 <span style="color:var(--muted);font-weight:500;font-size:0.78rem">(R&D 트랙은 권장)</span></label><input type="text" name="coreTech" placeholder="예: AI, IoT, 바이오" /></div>
-              <div class="field"><label>경쟁 우위 <span style="color:var(--muted);font-weight:500;font-size:0.78rem">(최대 500자)</span></label><textarea name="competitiveEdge" maxlength="500" placeholder="경쟁자 대비 차별점을 적어주세요."></textarea></div>
+              <div class="field"><label for="pf-bizSummary">사업 개요 <span style="color:var(--muted);font-weight:500;font-size:0.78rem">(최대 1000자)</span></label><textarea id="pf-bizSummary" name="bizSummary" maxlength="1000" placeholder="어떤 사업인지 간단히 적어주세요."></textarea></div>
+              <div class="field"><label for="pf-productDesc">제품/서비스 설명</label><textarea id="pf-productDesc" name="productDesc" placeholder="제품·서비스의 핵심을 적어주세요."></textarea></div>
+              <div class="field"><label for="pf-coreTech">핵심 기술 <span style="color:var(--muted);font-weight:500;font-size:0.78rem">(R&D 트랙은 권장)</span></label><input id="pf-coreTech" type="text" name="coreTech" placeholder="예: AI, IoT, 바이오" /></div>
+              <div class="field"><label for="pf-competitiveEdge">경쟁 우위 <span style="color:var(--muted);font-weight:500;font-size:0.78rem">(최대 500자)</span></label><textarea id="pf-competitiveEdge" name="competitiveEdge" maxlength="500" placeholder="경쟁자 대비 차별점을 적어주세요."></textarea></div>
               <div class="btn-row"><button type="button" class="btn ghost" onclick="goTab(1)">← 이전</button><button type="button" class="btn" onclick="goTab(3)">다음 →</button></div>
             </div>
 
             <!-- Tab 3 자금·경험 -->
             <div class="tab-panel" id="ptab-3">
               <p class="sub" style="margin-bottom:18px">자금 조달 이력과 정부지원사업 경험은 매칭 정확도와 중복수혜 검증에 사용됩니다. (상세 입력은 추후 단계에서 보강할 수 있습니다)</p>
-              <div class="field"><label>과거 정부지원사업 수행 경험</label>
-                <select name="fundingExp"><option value="">선택</option><option>없음</option><option>있음</option></select>
+              <div class="field"><label for="pf-fundingExp">과거 정부지원사업 수행 경험</label>
+                <select id="pf-fundingExp" name="fundingExp"><option value="">선택</option><option>없음</option><option>있음</option></select>
               </div>
-              <div class="field"><label>희망 자금 조달 규모</label>
-                <select name="fundingWish"><option value="">선택</option><option>1천만원 미만</option><option>1천~5천만원</option><option>5천만~1억</option><option>1억 이상</option></select>
+              <div class="field"><label for="pf-fundingWish">희망 자금 조달 규모</label>
+                <select id="pf-fundingWish" name="fundingWish"><option value="">선택</option><option>1천만원 미만</option><option>1천~5천만원</option><option>5천만~1억</option><option>1억 이상</option></select>
               </div>
               <div class="btn-row"><button type="button" class="btn ghost" onclick="goTab(2)">← 이전</button><button type="button" class="btn" id="btn-save" onclick="saveProfile()">프로필 저장하고 완료</button></div>
             </div>
@@ -229,12 +260,16 @@
           <div class="btn-row" style="margin-top:18px"><button class="btn ghost" onclick="editProfile()">프로필 수정</button></div>
         </div>
         <div class="card">
-          <h2>다음 단계</h2>
+          <h2>전체 진행 단계</h2>
+          <p class="sub" style="margin-bottom:16px">AI 자동화 6단계 + 전문가 컨설팅 1단계. 프로필(STEP 1)을 기반으로 순서대로 진행하세요.</p>
           <div class="next-grid">
-            <div class="next-card" onclick="goItem()" style="cursor:pointer"><div class="t">STEP 2 · 아이템 정의 + AI 아이템명 →</div><div class="d">합격형 아이템명 3안 <span style="color:var(--violet)">(목업)</span></div></div>
-            <div class="next-card" onclick="goAnalysis()" style="cursor:pointer"><div class="t">STEP 3 · 액셀러레이터 분석 →</div><div class="d">5영역 강점·약점 진단 <span style="color:var(--violet)">(목업)</span></div></div>
-            <div class="next-card" onclick="goMatch()" style="cursor:pointer;border-color:#cdbfe6"><div class="t">STEP 4 · 정부지원사업 매칭 →</div><div class="d">매칭률 산출 · <b style="color:var(--violet)">동작</b></div></div>
-            <div class="next-card" onclick="goMatch()" style="cursor:pointer"><div class="t">STEP 5 · 사업계획서 →</div><div class="d">매칭에서 공고 선택 후 작성 <span style="color:var(--violet)">(목업)</span></div></div>
+            <div class="next-card" role="button" tabindex="0" onclick="editProfile()" style="cursor:pointer;background:#f3eefa"><div class="t">STEP 1 · 내 정보 입력 ✓</div><div class="d">기본정보 · 사업정보 · 자금조달 경험 · <b style="color:var(--violet)">완료</b></div></div>
+            <div class="next-card" role="button" tabindex="0" onclick="goItem()" style="cursor:pointer"><div class="t">STEP 2 · 아이템 정의 + AI 아이템명 →</div><div class="d">아이템개요·문제인식·실현가능성·차별화 3가지 + 아이템명 3안 <span style="color:var(--violet)">(샘플)</span></div></div>
+            <div class="next-card" role="button" tabindex="0" onclick="goAnalysis()" style="cursor:pointer"><div class="t">STEP 3 · 전문 액셀러레이터 분석 →</div><div class="d">5영역 강점·약점 진단 <span style="color:var(--violet)">(샘플)</span></div></div>
+            <div class="next-card" role="button" tabindex="0" onclick="goMatch()" style="cursor:pointer;border-color:#cdbfe6"><div class="t">STEP 4 · 정부지원사업 매칭 →</div><div class="d">매칭률(%) 산출 · <b style="color:var(--violet)">바로 이용 가능</b></div></div>
+            <div class="next-card" role="button" tabindex="0" onclick="goMatch()" style="cursor:pointer"><div class="t">STEP 5 · 사업계획서 AI 자동작성 →</div><div class="d">매칭 공고 선택 후 자동작성 <span style="color:var(--violet)">(샘플)</span></div></div>
+            <div class="next-card" role="button" tabindex="0" onclick="goMatch()" style="cursor:pointer"><div class="t">STEP 6 · 발표(IR) 슬라이드 →</div><div class="d">사업계획서 기반 슬라이드 9장 <span style="color:var(--violet)">(샘플)</span></div></div>
+            <div class="next-card" role="button" tabindex="0" onclick="goConsult()" style="cursor:pointer;border-color:#f3c6de"><div class="t">STEP 7 · 전문가 1:1 컨설팅 →</div><div class="d">전담 컨설턴트 1:1 매칭 · <b style="color:var(--magenta)">유료</b></div></div>
           </div>
         </div>
       </section>
@@ -244,7 +279,7 @@
         <div class="card">
           <div class="eyebrow">STEP 4 · 정부지원사업 매칭</div>
           <h1>내게 맞는 지원사업</h1>
-          <p class="sub">프로필을 기준으로 매칭률을 산출했습니다. <span style="color:var(--muted);font-size:0.85rem">(룰 기반 매칭 — AI 임베딩 정밀도 향상은 추후)</span></p>
+          <p class="sub">프로필을 기준으로 매칭률을 산출했습니다. <span style="color:var(--muted);font-size:0.85rem">(조건 기반 매칭)</span></p>
           <div class="btn-row" style="margin-bottom:18px"><button class="btn ghost" onclick="goMypage()">← 마이페이지</button></div>
           <div id="match-list">매칭 중…</div>
         </div>
@@ -256,15 +291,15 @@
           <div class="eyebrow">STEP 2 · 아이템 정의</div>
           <h1>사업 아이템 정의</h1>
           <p class="sub">정부지원사업 신청서의 핵심 항목입니다. 입력하면 AI가 합격형 아이템명을 제안합니다.</p>
-          <div id="item-msg" class="msg"></div>
-          <div class="field"><label>① 아이템 개요 — 핵심 기능</label><textarea id="i-core" placeholder="제품·서비스의 핵심 기능"></textarea></div>
-          <div class="field"><label>고객 혜택</label><input type="text" id="i-benefit" placeholder="고객이 얻는 핵심 혜택" /></div>
-          <div class="field"><label>② 문제 인식</label><textarea id="i-problem" placeholder="해결하려는 시장 문제"></textarea></div>
-          <div class="field"><label>③ 실현 가능성 — 개발 계획</label><textarea id="i-devplan" placeholder="사업기간 내 개발·구체화 계획"></textarea></div>
+          <div id="item-msg" class="msg" aria-live="polite"></div>
+          <div class="field"><label for="i-core">① 아이템 개요 — 핵심 기능</label><textarea id="i-core" placeholder="제품·서비스의 핵심 기능"></textarea></div>
+          <div class="field"><label for="i-benefit">고객 혜택</label><input type="text" id="i-benefit" placeholder="고객이 얻는 핵심 혜택" /></div>
+          <div class="field"><label for="i-problem">② 문제 인식</label><textarea id="i-problem" placeholder="해결하려는 시장 문제"></textarea></div>
+          <div class="field"><label for="i-devplan">③ 실현 가능성 — 개발 계획</label><textarea id="i-devplan" placeholder="사업기간 내 개발·구체화 계획"></textarea></div>
           <div class="field"><label>④ 차별화 전략 <span style="color:var(--muted);font-weight:500;font-size:0.78rem">(정확히 3가지)</span></label>
-            <input type="text" id="i-s1" placeholder="차별화 전략 1" style="margin-bottom:8px" />
-            <input type="text" id="i-s2" placeholder="차별화 전략 2" style="margin-bottom:8px" />
-            <input type="text" id="i-s3" placeholder="차별화 전략 3" />
+            <input type="text" id="i-s1" aria-label="차별화 전략 1" placeholder="차별화 전략 1" style="margin-bottom:8px" />
+            <input type="text" id="i-s2" aria-label="차별화 전략 2" placeholder="차별화 전략 2" style="margin-bottom:8px" />
+            <input type="text" id="i-s3" aria-label="차별화 전략 3" placeholder="차별화 전략 3" />
           </div>
           <div class="btn-row"><button class="btn ghost" onclick="goMypage()">← 마이페이지</button><button class="btn" id="btn-gennames" onclick="genNames()">AI 아이템명 생성 →</button></div>
           <div id="name-suggestions" style="margin-top:18px"></div>
@@ -290,7 +325,7 @@
           <p class="sub">선택한 공고에 맞춰 섹션별 초안을 생성했습니다. 섹션마다 재생성할 수 있습니다.</p>
           <div class="btn-row" style="margin-bottom:18px"><button class="btn ghost" onclick="goMatch()">← 매칭</button><button class="btn" onclick="goDeck()">발표 슬라이드 만들기 →</button></div>
           <div id="plan-sections">생성 중…</div>
-          <div class="btn-row" style="margin-top:18px"><button class="btn ghost" onclick="downloadHwpx()">📄 hwpx 다운로드</button></div>
+          <div class="btn-row" style="margin-top:18px"><button class="btn ghost" onclick="downloadHwpx()">📄 한글(hwpx) 다운로드</button></div>
         </div>
       </section>
 
@@ -311,11 +346,11 @@
           <div class="eyebrow">STEP 7 · 전문가 컨설팅</div>
           <h1>전문가 1:1 상담 신청</h1>
           <p class="sub">지금까지 입력한 프로필·작업 내용이 컨설턴트에게 함께 전달됩니다.</p>
-          <div id="consult-msg" class="msg"></div>
-          <div class="field"><label>컨설팅 희망 영역</label>
+          <div id="consult-msg" class="msg" aria-live="polite"></div>
+          <div class="field"><label for="c-area">컨설팅 희망 영역</label>
             <select id="c-area"><option>사업계획서 첨삭</option><option>발표 코칭</option><option>서류 준비</option><option>세무·노무</option></select>
           </div>
-          <div class="field"><label>문의 내용</label><textarea id="c-message" placeholder="상담받고 싶은 내용을 적어주세요."></textarea></div>
+          <div class="field"><label for="c-message">문의 내용</label><textarea id="c-message" placeholder="상담받고 싶은 내용을 적어주세요."></textarea></div>
           <div class="btn-row"><button class="btn ghost" onclick="goMypage()">← 마이페이지</button><button class="btn" id="btn-consult" onclick="submitConsult()">상담 신청</button></div>
         </div>
       </section>
@@ -329,9 +364,41 @@
     let SEGMENTS = [];
     let ME = null;
 
+    let CURRENT_VIEW = 'auth';
+    const DONE = new Set();
     function show(view) {
+      CURRENT_VIEW = view;
       ['auth','profile','mypage','match','item','analysis','plan','deck','consult'].forEach((v) => $('#view-' + v).classList.toggle('hidden', v !== view));
       window.scrollTo(0, 0);
+      updateStepNav(view);
+    }
+    function markDone(n) { DONE.add(n); updateStepNav(CURRENT_VIEW); }
+    function updateStepNav(view) {
+      const nav = document.getElementById('step-nav');
+      if (!nav) return;
+      if (!ME || view === 'auth') { nav.style.display = 'none'; return; }
+      nav.style.display = '';
+      const map = { profile: 1, item: 2, analysis: 3, match: 4, plan: 5, deck: 6, consult: 7 };
+      const cur = map[view] || 0;
+      if (CURRENT_PLAN_ID) { DONE.add(4); DONE.add(5); }
+      if (CURRENT_DECK_ID) DONE.add(6);
+      for (let n = 1; n <= 7; n++) {
+        const el = document.getElementById('snav-' + n);
+        if (!el) continue;
+        el.classList.toggle('cur', n === cur);
+        el.classList.toggle('done', DONE.has(n) && n !== cur);
+      }
+    }
+    function navStep(n) {
+      switch (n) {
+        case 1: editProfile(); break;
+        case 2: goItem(); break;
+        case 3: goAnalysis(); break;
+        case 4: goMatch(); break;
+        case 5: CURRENT_PLAN_ID ? show('plan') : goMatch(); break;
+        case 6: CURRENT_DECK_ID ? show('deck') : (CURRENT_PLAN_ID ? goDeck() : goMatch()); break;
+        case 7: goConsult(); break;
+      }
     }
     function setMsg(el, type, text) { el.className = 'msg ' + type; el.textContent = text; }
     function clearMsg(el) { el.className = 'msg'; el.textContent = ''; }
@@ -368,7 +435,7 @@
 
     function renderHeader() {
       const el = $('#h-right');
-      if (ME) el.innerHTML = `<a onclick="goMypage()">마이페이지</a><button class="pill" onclick="logout()">로그아웃</button>`;
+      if (ME) el.innerHTML = `<a class="uname" onclick="goMypage()" style="cursor:pointer">${esc(ME.name || '내 워크스페이스')}님</a><button class="pill" onclick="logout()">로그아웃</button>`;
       else el.innerHTML = `<a class="pill" href="/">← 홈으로</a>`;
     }
 
@@ -438,11 +505,12 @@
       const rows = [
         ['사업장명', p.biz_name], ['설립연도', p.founded_year], ['업종', p.industry_code],
         ['지역', [p.region_sido, p.region_sigungu].filter(Boolean).join(' ')],
-        ['직원수', p.employee_cnt != null ? p.employee_cnt + '명' : ''], ['연매출', p.revenue_band],
+        ['직원 수', p.employee_cnt != null ? p.employee_cnt + '명' : ''], ['연매출', p.revenue_band],
       ].filter(([,v]) => v);
       $('#mp-summary').innerHTML =
         rows.map(([k,v]) => `<div class="sum-item"><div class="k">${esc(k)}</div><div class="v">${esc(v)}</div></div>`).join('')
         + `<div class="sum-item" style="grid-column:1/-1"><div class="k">세그먼트</div><div class="v">${segLabels.map((l) => `<span class="seg-tag">${esc(l)}</span>`).join('') || '-'}</div></div>`;
+      markDone(1);
     }
     async function goMypage() {
       const d = await (await fetch('/api/profile')).json();
@@ -499,9 +567,9 @@
       const d = await r.json();
       if (!d.suggestions) { setMsg($('#item-msg'), 'err', d.error || '생성에 실패했습니다.'); return; }
       $('#name-suggestions').innerHTML =
-        `<div class="msg ok" style="display:block">AI가 제안한 아이템명 3안입니다${d.mock ? ' (목업)' : ''}. 하나를 선택하세요.</div>` +
+        `<div class="msg ok" style="display:block">AI가 제안한 아이템명 3안입니다${d.mock ? ' (샘플)' : ''}. 하나를 선택하세요.</div>` +
         d.suggestions.map((s) => `
-          <div class="match-card" style="cursor:pointer" onclick="selectName(${s.id}, this)">
+          <div class="match-card" style="cursor:pointer" role="button" tabindex="0" onclick="selectName(${s.id}, this)">
             <span class="seg-tag">${esc(s.type)}</span>
             <div class="name" style="margin-top:6px">${esc(s.suggestion_text)}</div>
           </div>`).join('');
@@ -511,6 +579,7 @@
       document.querySelectorAll('#name-suggestions .match-card').forEach((c) => { c.style.borderColor = ''; });
       el.style.borderColor = 'var(--violet)';
       setMsg($('#item-msg'), 'ok', '아이템명이 선택됐습니다. STEP3 분석 또는 STEP4 매칭으로 진행하세요.');
+      markDone(2);
     }
 
     // ── STEP3 액셀러레이터 분석 (목업) ──
@@ -527,10 +596,11 @@
           <div class="match-bar"><i style="width:${v * 20}%"></i></div>
         </div>`).join('');
       el.innerHTML =
-        `${d.mock ? '<div class="msg ok" style="display:block">목업 분석 결과입니다. (AI 연동 시 실제 진단으로 교체)</div>' : ''}
+        `${d.mock ? '<div class="msg ok" style="display:block">샘플 미리보기입니다. 실제 분석은 순차 오픈됩니다.</div>' : ''}
         <h2 style="margin-top:8px">영역별 진단</h2>${gauges}
         <h2 style="margin-top:20px">종합 강점</h2>${d.strengths.map((s) => `<div style="font-size:0.88rem;margin-bottom:6px">✓ ${esc(s.text)}</div>`).join('')}
         <h2 style="margin-top:16px">보완 필요</h2>${d.gaps.map((g) => `<div style="font-size:0.88rem;margin-bottom:6px;color:var(--muted)">• ${esc(g.text)}</div>`).join('')}`;
+      markDone(3);
     }
 
     // ── STEP5 사업계획서 / STEP6 슬라이드 / STEP7 컨설팅 (생성은 목업) ──
@@ -543,12 +613,13 @@
       const d = await r.json();
       if (!d.planId) { $('#plan-sections').innerHTML = `<p class="sub">${esc(d.error || '생성에 실패했습니다.')}</p>`; return; }
       CURRENT_PLAN_ID = d.planId; CURRENT_APP_ID = d.applicationId;
+      markDone(4); markDone(5);
       $('#plan-title').textContent = `${d.programName} — 사업계획서`;
       renderPlan(d.planId, true);
     }
     async function renderPlan(planId, mock) {
       const d = await (await fetch(`/api/plans/${planId}`)).json();
-      $('#plan-sections').innerHTML = (mock ? '<div class="msg ok" style="display:block">목업 초안입니다 (AI 연동 시 공고 맞춤 생성으로 교체).</div>' : '') +
+      $('#plan-sections').innerHTML = (mock ? '<div class="msg ok" style="display:block">샘플 미리보기입니다. 실제 작성은 순차 오픈됩니다.</div>' : '') +
         d.sections.map((s) => `
           <div class="match-card">
             <div class="top"><div class="name">${esc(s.section_title)}</div><button class="btn ghost" style="padding:6px 12px;font-size:0.8rem" onclick="regenSection('${esc(s.section_key)}')">재생성</button></div>
@@ -559,7 +630,7 @@
       await fetch(`/api/plans/${CURRENT_PLAN_ID}/sections/${key}/regenerate`, { method: 'POST', headers: { 'Content-Type': 'application/json' } });
       renderPlan(CURRENT_PLAN_ID, false);
     }
-    function downloadHwpx() { alert('hwpx 변환 서비스로 사업계획서를 한글(hwpx)로 출력합니다.\n현재는 목업 단계이며, AI 연동 후 실제 내용이 hwpx로 생성됩니다.'); }
+    function downloadHwpx() { alert('한글(hwpx) 변환으로 사업계획서를 내려받을 수 있습니다.\n현재는 샘플 미리보기 단계이며, 실제 내용 출력은 순차 오픈됩니다.'); }
 
     async function goDeck() {
       if (!CURRENT_PLAN_ID) { goMatch(); return; }
@@ -569,8 +640,9 @@
       const d = await r.json();
       if (!d.deckId) { $('#deck-slides').innerHTML = `<p class="sub">${esc(d.error || '생성에 실패했습니다.')}</p>`; return; }
       CURRENT_DECK_ID = d.deckId;
+      markDone(6);
       const dd = await (await fetch(`/api/decks/${d.deckId}`)).json();
-      $('#deck-slides').innerHTML = `<div class="msg ok" style="display:block">${d.slideCount}장 슬라이드 (목업)</div>` +
+      $('#deck-slides').innerHTML = `<div class="msg ok" style="display:block"><span class="data">${d.slideCount}</span>장 슬라이드 (샘플)</div>` +
         dd.slides.map((s) => `
           <div class="match-card">
             <span class="seg-tag">${s.order_no}. ${esc(s.slide_type)}</span>
@@ -585,7 +657,7 @@
       const r = await fetch('/api/consulting', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ area: $('#c-area').value, message: $('#c-message').value, applicationId: CURRENT_APP_ID }) });
       btn.disabled = false; btn.textContent = '상담 신청';
       const d = await r.json();
-      if (d.success) setMsg($('#consult-msg'), 'ok', '상담 신청이 접수됐습니다. 전담 컨설턴트가 연락드립니다.');
+      if (d.success) { setMsg($('#consult-msg'), 'ok', '상담 신청이 접수됐습니다. 전담 컨설턴트가 연락드립니다.'); markDone(7); }
       else setMsg($('#consult-msg'), 'err', d.error || '신청에 실패했습니다.');
     }
     async function editProfile() {
@@ -606,6 +678,15 @@
     }
 
     // ── 초기화 ──
+    // 접근성: role="button" 요소를 키보드(Enter/Space)로 활성화하는 위임 리스너
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') return;
+      const t = e.target;
+      if (t && t.matches && t.matches('[role="button"][tabindex]')) {
+        e.preventDefault();
+        t.click();
+      }
+    });
     (async function init() {
       try {
         const r = await fetch('/api/auth/me');

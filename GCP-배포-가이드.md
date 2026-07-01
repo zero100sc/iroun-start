@@ -135,9 +135,3 @@ GCP Console → Cloud Run → 서비스 선택 → "도메인 매핑" 탭
 gcloud run logs read --service iroun-start --region asia-northeast3
 ```
 
----
-
-## Claude Code에게 물어보기
-
-모르는 단계가 있으면 그대로 복붙해서 물어보세요:
-"3단계 Cloud SQL 생성하다가 이런 오류가 났어: [오류 내용]"

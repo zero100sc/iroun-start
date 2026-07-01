@@ -46,7 +46,7 @@
 
     .eyebrow {
       font-size: 0.76rem; font-weight: 700; letter-spacing: 0.18em;
-      text-transform: uppercase; color: var(--magenta);
+      text-transform: uppercase; color: #CC1470;
       display: inline-flex; align-items: center; gap: 8px;
     }
     .eyebrow::before { content: ''; width: 22px; height: 1.5px; background: var(--magenta); display: inline-block; }
@@ -114,7 +114,7 @@
     }
     .hero-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--magenta); box-shadow: 0 0 0 4px rgba(230,25,126,0.2); }
     .hero h1 { font-size: clamp(2.3rem, 4.7vw, 4rem); font-weight: 800; color: #fff; line-height: 1.16; letter-spacing: -0.035em; margin-bottom: 22px; }
-    .hero h1 em { font-style: normal; background: linear-gradient(120deg, #C77DFF, #FF5FA8); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .hero h1 em { font-style: normal; background: linear-gradient(120deg, #A24BC9, #E6197E); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
     .hero-sub { color: rgba(255,255,255,0.64); font-size: 1.08rem; max-width: 500px; margin-bottom: 34px; }
     .hero-btns { display: flex; gap: 12px; flex-wrap: wrap; }
     .btn-lg { padding: 15px 26px; border-radius: 12px; font-size: 0.97rem; font-weight: 700; cursor: pointer; font-family: inherit; transition: transform .18s var(--ease), box-shadow .2s, filter .2s; }
@@ -130,7 +130,7 @@
     .match-panel { position: relative; }
     .match-head {
       display: flex; align-items: center; justify-content: space-between;
-      color: rgba(255,255,255,0.42); font-size: 0.72rem; font-weight: 700;
+      color: rgba(255,255,255,0.72); font-size: 0.72rem; font-weight: 700;
       letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 14px; padding: 0 4px;
     }
     .match-head .live { display: flex; align-items: center; gap: 6px; color: #FF5FA8; }
@@ -150,12 +150,12 @@
       box-shadow: 0 14px 40px rgba(176,42,138,0.28);
     }
     .gc-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-    .gc-org { font-size: 0.72rem; font-weight: 600; color: rgba(255,255,255,0.55); background: rgba(255,255,255,0.07); padding: 3px 9px; border-radius: 6px; }
+    .gc-org { font-size: 0.72rem; font-weight: 600; color: rgba(255,255,255,0.72); background: rgba(255,255,255,0.07); padding: 3px 9px; border-radius: 6px; }
     .gc-dday { font-size: 0.74rem; font-weight: 700; color: #FF5FA8; }
     .gc-name { font-size: 1rem; font-weight: 700; color: #fff; margin-bottom: 12px; letter-spacing: -0.01em; }
     .gc-bottom { display: flex; align-items: center; justify-content: space-between; }
     .gc-amount { color: #fff; font-size: 1.18rem; font-weight: 700; }
-    .gc-amount span { font-size: 0.78rem; color: rgba(255,255,255,0.5); font-weight: 500; margin-left: 3px; font-family: 'Pretendard Variable'; }
+    .gc-amount span { font-size: 0.78rem; color: rgba(255,255,255,0.72); font-weight: 500; margin-left: 3px; font-family: 'Pretendard Variable'; }
     .gc-match { display: inline-flex; align-items: center; gap: 5px; background: var(--grad); color: #fff; font-size: 0.76rem; font-weight: 800; padding: 4px 10px; border-radius: 999px; }
     .gc-match.dim { background: rgba(255,255,255,0.12); color: #fff; }
     .gc-bar { height: 4px; border-radius: 999px; background: rgba(255,255,255,0.1); margin-top: 12px; overflow: hidden; }
@@ -174,7 +174,7 @@
     .stat-cell:last-child { border-right: none; }
     .stat-num { font-size: 2.1rem; font-weight: 700; color: #fff; line-height: 1; }
     .stat-num .u { color: #FF5FA8; }
-    .stat-label { font-size: 0.82rem; color: rgba(255,255,255,0.5); margin-top: 8px; }
+    .stat-label { font-size: 0.82rem; color: rgba(255,255,255,0.72); margin-top: 8px; }
 
     /* ── SECTION BASE ── */
     .section { padding: 92px 0; }
@@ -226,9 +226,9 @@
     .badge-magenta { background: rgba(230,25,126,0.2); color: #f9a8d4; }
     .badge-soft { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); }
     .prog-card h4 { font-size: 0.98rem; font-weight: 700; color: #fff; margin-bottom: 6px; letter-spacing: -0.01em; }
-    .prog-card p { font-size: 0.83rem; color: rgba(255,255,255,0.5); margin-bottom: 14px; line-height: 1.55; }
+    .prog-card p { font-size: 0.83rem; color: rgba(255,255,255,0.72); margin-bottom: 14px; line-height: 1.55; }
     .prog-amount { font-size: 0.92rem; color: #FF5FA8; font-weight: 700; }
-    .prog-org { font-size: 0.76rem; color: rgba(255,255,255,0.35); margin-top: 4px; }
+    .prog-org { font-size: 0.76rem; color: rgba(255,255,255,0.62); margin-top: 4px; }
 
     /* ── PROCESS ── */
     .proc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-top: 48px; }
@@ -327,9 +327,29 @@
       .stat-cell:nth-child(2) { border-right: none; }
       .stat-cell:nth-child(1), .stat-cell:nth-child(2) { border-bottom: 1px solid rgba(255,255,255,0.07); }
     }
-    @media (max-width: 640px) {
+    /* ── NAV: 태블릿·모바일(≤900px) 햄버거 드롭다운 ──
+       641~940px 붕괴/오버플로우 방지를 위해 브레이크포인트를 900px로 상향.
+       데스크톱(>900px)은 기존 가로 nav 유지. 열림 상태는 nav.nav-open 클래스로만 제어(견고). */
+    @media (max-width: 900px) {
       .nav-menu, .nav-login { display: none; }
       .hamburger { display: block; }
+
+      /* 햄버거 열림: 세로 드롭다운 + 로그인/회원가입(/app) 카드 노출로 진입 동선 보장 */
+      nav.nav-open .nav-menu {
+        display: flex; flex-direction: column; align-items: stretch;
+        position: absolute; top: 76px; left: 0; right: 0; z-index: 200;
+        background: #fff; padding: 68px 24px 18px; gap: 6px;
+        border-bottom: 1px solid var(--line);
+        box-shadow: 0 10px 26px rgba(11,27,52,0.08);
+      }
+      nav.nav-open .nav-menu a { display: block; padding: 9px 2px; font-size: 0.98rem; }
+      nav.nav-open .nav-login {
+        display: block; position: absolute; top: 88px; left: 24px; right: 24px; z-index: 201;
+        padding: 12px 14px; text-align: center; font-weight: 700; color: var(--violet);
+        background: var(--paper); border: 1px solid var(--line); border-radius: 10px;
+      }
+    }
+    @media (max-width: 640px) {
       .section { padding: 64px 0; }
       .hero { padding: 120px 0 80px; }
       .form-body { padding: 24px 20px; }
@@ -355,9 +375,9 @@
     <li><a href="#testimonials">성공 사례</a></li>
   </ul>
   <div class="nav-right">
-    <a class="nav-login" href="/admin/login">로그인</a>
+    <a class="nav-login" href="/app">로그인 / 회원가입</a>
     <button class="btn-grad" onclick="scrollToForm()">무료 상담 신청</button>
-    <button class="hamburger" onclick="toggleMenu()" aria-label="메뉴 열기"><span></span><span></span><span></span></button>
+    <button class="hamburger" onclick="toggleMenu()" aria-label="메뉴 열기" aria-expanded="false"><span></span><span></span><span></span></button>
   </div>
 </nav>
 
@@ -373,9 +393,9 @@
         <button class="btn-lg btn-hero-out" onclick="scrollToForm('small')">소상공인 무료 상담</button>
       </div>
       <div class="hero-trust">
-        <span class="trust-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M20 6 9 17l-5-5" stroke="#FF5FA8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>사업자 없어도 신청 가능</span>
-        <span class="trust-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M20 6 9 17l-5-5" stroke="#FF5FA8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>상담 완전 무료</span>
-        <span class="trust-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M20 6 9 17l-5-5" stroke="#FF5FA8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>1:1 전담 컨설턴트</span>
+        <span class="trust-item"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M20 6 9 17l-5-5" stroke="#FF5FA8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>사업자 없어도 신청 가능</span>
+        <span class="trust-item"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M20 6 9 17l-5-5" stroke="#FF5FA8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>상담 완전 무료</span>
+        <span class="trust-item"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M20 6 9 17l-5-5" stroke="#FF5FA8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>1:1 전담 컨설턴트</span>
       </div>
     </div>
 
@@ -398,7 +418,7 @@
           <div class="gc-bar"><i class="dim" style="width:84%"></i></div>
         </div>
         <div class="gov-card float-a">
-          <div class="gc-top"><span class="gc-org">소상공인진흥공단</span><span class="gc-dday" style="color:rgba(255,255,255,0.5)">상시 접수</span></div>
+          <div class="gc-top"><span class="gc-org">소상공인진흥공단</span><span class="gc-dday" style="color:rgba(255,255,255,0.72)">상시 접수</span></div>
           <div class="gc-name">소상공인 정책자금</div>
           <div class="gc-bottom"><span class="gc-amount data">7,000<span>만원 · 금리 2.5%</span></span><span class="gc-match dim">매칭 78%</span></div>
           <div class="gc-bar"><i class="dim" style="width:78%"></i></div>
@@ -447,11 +467,11 @@
         </div>
         <div class="svc-body">
           <ul class="svc-list">
-            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M20 6 9 17l-5-5" stroke="#7A2E9C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>내 아이디어에 맞는 지원사업 1:1 매칭</li>
-            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M20 6 9 17l-5-5" stroke="#7A2E9C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>예비창업패키지·청년창업사관학교 집중 지원</li>
-            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M20 6 9 17l-5-5" stroke="#7A2E9C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>선정률을 높이는 사업계획서 작성 지도</li>
-            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M20 6 9 17l-5-5" stroke="#7A2E9C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>사업자 등록 시점·절차 컨설팅 포함</li>
-            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M20 6 9 17l-5-5" stroke="#7A2E9C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>합격 후 정산·사후관리까지 동행</li>
+            <li><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M20 6 9 17l-5-5" stroke="#7A2E9C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>내 아이디어에 맞는 지원사업 1:1 매칭</li>
+            <li><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M20 6 9 17l-5-5" stroke="#7A2E9C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>예비창업패키지·청년창업사관학교 집중 지원</li>
+            <li><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M20 6 9 17l-5-5" stroke="#7A2E9C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>선정률을 높이는 사업계획서 작성 지도</li>
+            <li><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M20 6 9 17l-5-5" stroke="#7A2E9C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>사업자 등록 시점·절차 컨설팅 포함</li>
+            <li><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M20 6 9 17l-5-5" stroke="#7A2E9C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>선정 후 정산·사후관리까지 동행</li>
           </ul>
           <div class="svc-amount"><div><div class="lbl">지원 가능 금액</div><div class="val">최대 1억원 (현금지원)</div></div><span class="ic">🚀</span></div>
         </div>
@@ -464,11 +484,11 @@
         </div>
         <div class="svc-body">
           <ul class="svc-list">
-            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M20 6 9 17l-5-5" stroke="#E6197E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>업종·매출 규모에 맞는 지원사업 진단</li>
-            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M20 6 9 17l-5-5" stroke="#E6197E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>소상공인 정책자금 저금리 대출 연계</li>
-            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M20 6 9 17l-5-5" stroke="#E6197E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>경영개선·디지털화 지원사업 신청 대행</li>
-            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M20 6 9 17l-5-5" stroke="#E6197E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>노란우산공제·특례보증 안내 및 가입 지원</li>
-            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M20 6 9 17l-5-5" stroke="#E6197E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>폐업 위기 소상공인 재기 지원 연계</li>
+            <li><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M20 6 9 17l-5-5" stroke="#E6197E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>업종·매출 규모에 맞는 지원사업 진단</li>
+            <li><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M20 6 9 17l-5-5" stroke="#E6197E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>소상공인 정책자금 저금리 대출 연계</li>
+            <li><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M20 6 9 17l-5-5" stroke="#E6197E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>경영개선·디지털화 지원사업 신청 대행</li>
+            <li><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M20 6 9 17l-5-5" stroke="#E6197E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>노란우산공제·특례보증 안내 및 가입 지원</li>
+            <li><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M20 6 9 17l-5-5" stroke="#E6197E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>폐업 위기 소상공인 재기 지원 연계</li>
           </ul>
           <div class="svc-amount"><div><div class="lbl">지원 가능 금액</div><div class="val">정책자금 최대 7,000만원</div></div><span class="ic">🏪</span></div>
         </div>
@@ -515,9 +535,9 @@
     <span class="eyebrow">컨설팅 과정</span>
     <h2 class="h-sec">4단계로 완성되는<br />정부지원 수혜 과정</h2>
     <div class="proc-grid">
-      <div class="proc-step reveal"><div class="proc-n">STEP 01</div><h4>무료 상담 신청</h4><p>아래 폼 작성 후 24시간 내 전담 컨설턴트가 연락드립니다</p><svg class="arrow" width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="m9 18 6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-      <div class="proc-step reveal"><div class="proc-n">STEP 02</div><h4>현황 진단 & 매칭</h4><p>상황에 딱 맞는 지원사업을 최대 5개 추천해드립니다</p><svg class="arrow" width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="m9 18 6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-      <div class="proc-step reveal"><div class="proc-n">STEP 03</div><h4>사업계획서 & 서류 준비</h4><p>전담 컨설턴트와 함께 선정 가능성을 최대로 높입니다</p><svg class="arrow" width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="m9 18 6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="proc-step reveal"><div class="proc-n">STEP 01</div><h4>무료 상담 신청</h4><p>아래 폼 작성 후 24시간 내 전담 컨설턴트가 연락드립니다</p><svg class="arrow" aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="m9 18 6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="proc-step reveal"><div class="proc-n">STEP 02</div><h4>현황 진단 & 매칭</h4><p>상황에 딱 맞는 지원사업을 최대 5개 추천해드립니다</p><svg class="arrow" aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="m9 18 6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="proc-step reveal"><div class="proc-n">STEP 03</div><h4>사업계획서 & 서류 준비</h4><p>전담 컨설턴트와 함께 선정 가능성을 최대로 높입니다</p><svg class="arrow" aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="m9 18 6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
       <div class="proc-step reveal"><div class="proc-n">STEP 04</div><h4>신청 & 사후관리</h4><p>선정 후 정산·보고까지 끝까지 함께합니다</p></div>
     </div>
   </div>
@@ -541,8 +561,8 @@
       </div>
       <div class="testi-card reveal">
         <span class="testi-type t-startup">예비창업자</span>
-        <blockquote>학생인데 창업하고 싶었어요. 돈도 없고 경험도 없어서 막막했는데, 청년창업사관학교를 추천해주셔서 도전했고 합격했습니다. 창업 공간에 1억까지 지원받았어요. 컨설팅 없었으면 혼자 못 했을 것 같아요.</blockquote>
-        <div class="testi-meta"><div class="testi-info"><div class="name">김○○ (20대, 대전)</div><div class="role">대학생 예비창업자 → 사관학교 합격</div></div><div class="testi-result"><div class="amount data">1억원</div><div class="rlabel">청년창업사관학교 수혜</div></div></div>
+        <blockquote>학생인데 창업하고 싶었어요. 돈도 없고 경험도 없어서 막막했는데, 청년창업사관학교를 추천해주셔서 도전했고 선정됐습니다. 창업 공간에 1억까지 지원받았어요. 컨설팅 없었으면 혼자 못 했을 것 같아요.</blockquote>
+        <div class="testi-meta"><div class="testi-info"><div class="name">김○○ (20대, 대전)</div><div class="role">대학생 예비창업자 → 사관학교 선정</div></div><div class="testi-result"><div class="amount data">1억원</div><div class="rlabel">청년창업사관학교 수혜</div></div></div>
       </div>
     </div>
   </div>
@@ -554,7 +574,7 @@
     <div class="form-head">
       <span class="eyebrow">무료 상담 신청</span>
       <h2 class="h-sec" style="margin-bottom:8px">어떤 상황이신가요?</h2>
-      <p class="sub-sec" style="margin:0 auto">접수 후 영업일 기준 1일 내 전담 컨설턴트가 연락드립니다</p>
+      <p class="sub-sec" style="margin:0 auto">접수 후 24시간 내 전담 컨설턴트가 연락드립니다</p>
     </div>
 
     <div class="form-tabs">
@@ -565,15 +585,15 @@
     <div class="form-body">
       <form class="form-panel active" id="form-startup" onsubmit="submitForm(event, '예비창업자')">
         <div class="form-row">
-          <div class="form-group"><label>이름 <span class="req">*</span></label><input type="text" name="name" placeholder="홍길동" required /></div>
-          <div class="form-group"><label>연락처 <span class="req">*</span></label><input type="tel" name="phone" placeholder="010-0000-0000" required /></div>
+          <div class="form-group"><label for="startup-name">이름 <span class="req">*</span></label><input id="startup-name" type="text" name="name" placeholder="홍길동" required /></div>
+          <div class="form-group"><label for="startup-phone">연락처 <span class="req">*</span></label><input id="startup-phone" type="tel" name="phone" placeholder="010-0000-0000" required /></div>
         </div>
         <div class="form-row">
-          <div class="form-group"><label>현재 상태 <span class="req">*</span></label>
-            <select name="currentStatus" required><option value="">선택해주세요</option><option>직장인 (창업 준비 중)</option><option>학생</option><option>구직 중</option><option>프리랜서</option><option>기타</option></select>
+          <div class="form-group"><label for="startup-currentStatus">현재 상태 <span class="req">*</span></label>
+            <select id="startup-currentStatus" name="currentStatus" required><option value="">선택해주세요</option><option>직장인 (창업 준비 중)</option><option>학생</option><option>구직 중</option><option>프리랜서</option><option>기타</option></select>
           </div>
-          <div class="form-group"><label>창업 예정 업종 <span class="req">*</span></label>
-            <select name="businessType" required><option value="">선택해주세요</option><option>IT·소프트웨어·앱</option><option>제조·하드웨어</option><option>유통·이커머스</option><option>식품·외식</option><option>뷰티·패션</option><option>교육·콘텐츠</option><option>사회적기업·소셜벤처</option><option>기타 서비스업</option></select>
+          <div class="form-group"><label for="startup-businessType">창업 예정 업종 <span class="req">*</span></label>
+            <select id="startup-businessType" name="businessType" required><option value="">선택해주세요</option><option>IT·소프트웨어·앱</option><option>제조·하드웨어</option><option>유통·이커머스</option><option>식품·외식</option><option>뷰티·패션</option><option>교육·콘텐츠</option><option>사회적기업·소셜벤처</option><option>기타 서비스업</option></select>
           </div>
         </div>
         <div class="form-group">
@@ -586,7 +606,7 @@
             <label class="check-item"><input type="checkbox" name="interests" value="전문가 추천 요청" /><span>어떤 게 맞는지 모르겠어요 → 전문가 추천 받기</span></label>
           </div>
         </div>
-        <div class="form-group"><label>창업 아이디어 또는 문의 내용</label><textarea name="message" placeholder="어떤 사업을 준비 중이신지, 또는 궁금한 점을 자유롭게 적어주세요. (선택사항)"></textarea></div>
+        <div class="form-group"><label for="startup-message">창업 아이디어 또는 문의 내용</label><textarea id="startup-message" name="message" placeholder="어떤 사업을 준비 중이신지, 또는 궁금한 점을 자유롭게 적어주세요. (선택사항)"></textarea></div>
         <div class="form-notice">ℹ️ 사업자등록증이 없어도 괜찮습니다. 예비창업자 상태에서 신청 가능한 지원사업을 안내드립니다.</div>
         <button type="submit" class="btn-submit" id="btn-startup">무료 상담 신청하기 →</button>
         <p class="submit-sub">개인정보는 상담 목적으로만 사용되며, 제3자에게 제공되지 않습니다.</p>
@@ -594,21 +614,21 @@
 
       <form class="form-panel" id="form-small" onsubmit="submitForm(event, '소상공인')">
         <div class="form-row">
-          <div class="form-group"><label>이름 <span class="req">*</span></label><input type="text" name="name" placeholder="홍길동" required /></div>
-          <div class="form-group"><label>연락처 <span class="req">*</span></label><input type="tel" name="phone" placeholder="010-0000-0000" required /></div>
+          <div class="form-group"><label for="small-name">이름 <span class="req">*</span></label><input id="small-name" type="text" name="name" placeholder="홍길동" required /></div>
+          <div class="form-group"><label for="small-phone">연락처 <span class="req">*</span></label><input id="small-phone" type="tel" name="phone" placeholder="010-0000-0000" required /></div>
         </div>
         <div class="form-row">
-          <div class="form-group"><label>상호명 <span class="req">*</span></label><input type="text" name="businessName" placeholder="예) 이로운 카페" required /></div>
-          <div class="form-group"><label>업종 <span class="req">*</span></label>
-            <select name="industry" required><option value="">선택해주세요</option><option>음식점·카페</option><option>소매·유통업</option><option>미용·뷰티</option><option>의류·패션</option><option>교육·학원</option><option>수리·서비스</option><option>IT·인터넷 쇼핑몰</option><option>기타</option></select>
+          <div class="form-group"><label for="small-businessName">상호명 <span class="req">*</span></label><input id="small-businessName" type="text" name="businessName" placeholder="예) 이로운 카페" required /></div>
+          <div class="form-group"><label for="small-industry">업종 <span class="req">*</span></label>
+            <select id="small-industry" name="industry" required><option value="">선택해주세요</option><option>음식점·카페</option><option>소매·유통업</option><option>미용·뷰티</option><option>의류·패션</option><option>교육·학원</option><option>수리·서비스</option><option>IT·인터넷 쇼핑몰</option><option>기타</option></select>
           </div>
         </div>
         <div class="form-row">
-          <div class="form-group"><label>사업 기간 <span class="req">*</span></label>
-            <select name="operationPeriod" required><option value="">선택해주세요</option><option>1년 미만</option><option>1~3년</option><option>3~5년</option><option>5년 이상</option></select>
+          <div class="form-group"><label for="small-operationPeriod">사업 기간 <span class="req">*</span></label>
+            <select id="small-operationPeriod" name="operationPeriod" required><option value="">선택해주세요</option><option>1년 미만</option><option>1~3년</option><option>3~5년</option><option>5년 이상</option></select>
           </div>
-          <div class="form-group"><label>종업원 수</label>
-            <select name="employeeCount"><option>없음 (1인 사업자)</option><option>1~4명</option><option>5명 이상</option></select>
+          <div class="form-group"><label for="small-employeeCount">직원 수</label>
+            <select id="small-employeeCount" name="employeeCount"><option>없음 (1인 사업자)</option><option>1~4명</option><option>5명 이상</option></select>
           </div>
         </div>
         <div class="form-group">
@@ -621,7 +641,7 @@
             <label class="check-item"><input type="checkbox" name="interests" value="전문가 추천 요청" /><span>어떤 게 맞는지 모르겠어요 → 전문가 추천 받기</span></label>
           </div>
         </div>
-        <div class="form-group"><label>어려움이나 문의 내용</label><textarea name="message" placeholder="현재 운영 중 어떤 부분이 어려우신지, 필요한 자금 규모 등을 자유롭게 적어주세요. (선택사항)"></textarea></div>
+        <div class="form-group"><label for="small-message">어려움이나 문의 내용</label><textarea id="small-message" name="message" placeholder="현재 운영 중 어떤 부분이 어려우신지, 필요한 자금 규모 등을 자유롭게 적어주세요. (선택사항)"></textarea></div>
         <div class="form-notice">ℹ️ 상시근로자 5인 미만이면 소상공인 지원 대상입니다. 업종·매출에 따라 받을 수 있는 지원이 다르니 부담 없이 신청해주세요.</div>
         <button type="submit" class="btn-submit" id="btn-small">무료 상담 신청하기 →</button>
         <p class="submit-sub">개인정보는 상담 목적으로만 사용되며, 제3자에게 제공되지 않습니다.</p>
@@ -642,12 +662,12 @@
         <a href="#services">서비스 소개</a>
         <a href="#programs">지원사업 안내</a>
         <a href="#testimonials">성공 사례</a>
-        <a href="#">이용약관</a>
-        <a href="#">개인정보처리방침</a>
+        <a href="/terms.html">이용약관</a>
+        <a href="/privacy.html">개인정보처리방침</a>
       </div>
     </div>
     <div class="footer-bottom">
-      <p>© 2025 제로백스쿨 (ZERO100). All rights reserved. | 사업자등록번호: 000-00-00000 | 대표: 홍길동</p>
+      <p>© 2026 제로백스쿨 (ZERO100). All rights reserved. | 사업자등록번호: [사업자등록번호] | 대표: [대표자명]</p>
       <p style="margin-top:6px">본 사이트의 지원금액은 사업 공고 기준이며, 실제 지원 금액은 심사 결과에 따라 달라질 수 있습니다.</p>
     </div>
   </div>
@@ -655,11 +675,11 @@
 
 <button class="float-cta" onclick="scrollToForm()">📋 무료 상담 신청</button>
 
-<div class="modal-overlay" id="modal">
+<div class="modal-overlay" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-describedby="modal-msg">
   <div class="modal">
-    <div class="modal-icon">✅</div>
-    <h3>상담 신청이 완료됐습니다!</h3>
-    <p id="modal-msg">영업일 기준 1일 내 전담 컨설턴트가 연락드립니다.</p>
+    <div class="modal-icon" aria-hidden="true">✅</div>
+    <h3 id="modal-title">상담 신청이 완료됐습니다!</h3>
+    <p id="modal-msg">24시간 내 전담 컨설턴트가 연락드립니다.</p>
     <button class="modal-close" onclick="closeModal()">확인</button>
   </div>
 </div>
@@ -699,7 +719,7 @@
       const res = await fetch('/api/submit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
       const result = await res.json();
       if (result.success) {
-        document.getElementById('modal-msg').innerHTML = `<strong>${type}</strong> 상담 신청이 완료됐습니다.<br />영업일 기준 1일 내 전담 컨설턴트가 연락드립니다.`;
+        document.getElementById('modal-msg').innerHTML = `<strong>${type}</strong> 상담 신청이 완료됐습니다.<br />24시간 내 전담 컨설턴트가 연락드립니다.`;
         document.getElementById('modal').classList.add('open');
         form.reset();
       } else { alert(result.message || '오류가 발생했습니다. 다시 시도해주세요.'); }
@@ -715,13 +735,80 @@
   document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
   function toggleMenu() {
-    const menu = document.querySelector('.nav-menu');
-    const open = menu.style.display === 'flex';
-    if (open) { menu.style.display = ''; }
-    else {
-      Object.assign(menu.style, { display: 'flex', flexDirection: 'column', position: 'absolute', top: '76px', left: '0', right: '0', background: '#fff', padding: '16px 24px', gap: '14px', borderBottom: '1px solid var(--line)' });
+    const nav = document.querySelector('nav');
+    const isOpen = nav.classList.toggle('nav-open');
+    const btn = nav.querySelector('.hamburger');
+    if (btn) {
+      btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      btn.setAttribute('aria-label', isOpen ? '메뉴 닫기' : '메뉴 열기');
     }
   }
+</script>
+
+<script>
+  // ── 접근성: 모달 다이얼로그 포커스 관리 (WCAG 2.4.3 / 2.1.2) ──
+  // 기존 로직/함수(submitForm·closeModal 등) 불변 — 결합만 추가.
+  // #modal 의 'open' 클래스 변화를 MutationObserver로 감지해
+  // (1) 트리거 저장 → (2) 모달 내부로 포커스 이동 → (3) Tab/Shift+Tab 트랩 →
+  // Esc 로 기존 closeModal() 호출 → 닫힐 때 트리거로 포커스 복귀.
+  (function () {
+    var modal = document.getElementById('modal');
+    if (!modal || modal.__a11yFocusBound) return;
+    modal.__a11yFocusBound = true;
+
+    var FOCUSABLE = 'a[href],area[href],button:not([disabled]),input:not([disabled]):not([type="hidden"]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+    var lastTrigger = null;
+
+    // 모달 밖에서 마지막으로 포커스된 요소를 추적 → 닫힐 때 복귀 대상
+    document.addEventListener('focusin', function (e) {
+      if (!modal.contains(e.target)) lastTrigger = e.target;
+    }, true);
+
+    function focusable() {
+      return Array.prototype.filter.call(modal.querySelectorAll(FOCUSABLE), function (el) {
+        return el.offsetWidth > 0 || el.offsetHeight > 0 || el.getClientRects().length > 0;
+      });
+    }
+    function closeIt() {
+      if (typeof closeModal === 'function') closeModal();
+      else modal.classList.remove('open');
+    }
+
+    // Esc 닫기 + 포커스 트랩 (캡처 단계에서 선제 처리)
+    document.addEventListener('keydown', function (e) {
+      if (!modal.classList.contains('open')) return;
+      if (e.key === 'Escape' || e.key === 'Esc') { e.preventDefault(); closeIt(); return; }
+      if (e.key !== 'Tab') return;
+      var f = focusable();
+      if (!f.length) { e.preventDefault(); modal.focus(); return; }
+      var first = f[0], last = f[f.length - 1], a = document.activeElement;
+      if (a === modal || !modal.contains(a)) { e.preventDefault(); (e.shiftKey ? last : first).focus(); return; }
+      if (e.shiftKey && a === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && a === last) { e.preventDefault(); first.focus(); }
+    }, true);
+
+    function onOpen() {
+      if (!modal.hasAttribute('tabindex')) modal.setAttribute('tabindex', '-1');
+      setTimeout(function () {
+        var f = focusable();
+        (f.length ? f[0] : modal).focus();
+      }, 0);
+    }
+    function onClose() {
+      var el = lastTrigger;
+      setTimeout(function () {
+        if (el && document.contains(el) && typeof el.focus === 'function') el.focus();
+      }, 0);
+    }
+
+    var wasOpen = modal.classList.contains('open');
+    new MutationObserver(function () {
+      var isOpen = modal.classList.contains('open');
+      if (isOpen === wasOpen) return;
+      wasOpen = isOpen;
+      if (isOpen) onOpen(); else onClose();
+    }).observe(modal, { attributes: true, attributeFilter: ['class'] });
+  })();
 </script>
 </body>
 </html>

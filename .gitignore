@@ -3,6 +3,6 @@ node_modules/
 zero100/
 -w
 
-# ── 내부 작업 환경 (클라이언트 저장소에 절대 노출 금지) ──
-.claude/
-CLAUDE.local.md
+# 임시/테스트 산출물
+_*
+qa_*

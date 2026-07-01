@@ -1,0 +1,26 @@
+# 로컬 아티팩트 (이미지엔 npm ci 결과만 사용)
+node_modules/
+npm-debug.log*
+
+# 비밀/환경
+.env
+.env.*
+
+# 문서·기획 (런타임 불필요) — *.md 는 루트 md 전부 제외
+*.md
+doc/
+render.yaml
+
+# 별도 서비스 (Node 앱 이미지에 불필요)
+hwpx-service/
+zero100/
+
+# 임시/테스트 산출물
+_*
+qa_*
+
+# git/빌드 메타
+.git/
+.gitignore
+.gcloudignore
+.dockerignore

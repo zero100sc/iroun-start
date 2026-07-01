@@ -9,20 +9,44 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --bg:       #f1f5f9;
-      --sidebar:  #0f172a;
+      --bg:       #F7F6FB;
+      --sidebar:  #0B1B34;
       --card:     #ffffff;
-      --border:   #e2e8f0;
-      --text:     #1e293b;
-      --muted:    #64748b;
+      --border:   #E7E4F0;
+      --soft:     #EFEBF6;
+      --text:     #1B1726;
+      --muted:    #6A6380;
       --navy:     #7A2E9C;
       --orange:   #E6197E;
+      --grad:     linear-gradient(120deg, #7A2E9C 0%, #E6197E 100%);
       --green:    #059669;
       --blue:     #2563eb;
       --yellow:   #d97706;
       --red:      #dc2626;
     }
     body { font-family: 'Pretendard Variable', -apple-system, sans-serif; background: var(--bg); color: var(--text); display: flex; min-height: 100vh; -webkit-font-smoothing: antialiased; }
+
+    /* ── 접근성: 키보드 포커스 ── */
+    a:focus-visible, button:focus-visible, input:focus-visible,
+    select:focus-visible, textarea:focus-visible,
+    [tabindex]:focus-visible, tr:focus-visible {
+      outline: 2.5px solid var(--orange); outline-offset: 3px; border-radius: 6px;
+    }
+
+    /* ── 모바일 사이드바 토글 ── */
+    .menu-toggle {
+      display: none; background: none; border: none; cursor: pointer;
+      font-size: 1.35rem; color: var(--text); line-height: 1;
+      min-width: 44px; min-height: 44px; border-radius: 8px;
+      align-items: center; justify-content: center; font-family: inherit;
+    }
+    .menu-toggle:hover { background: var(--bg); }
+    .topbar-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .sidebar-backdrop {
+      display: none; position: fixed; inset: 0; z-index: 9;
+      background: rgba(11,27,52,0.5);
+    }
+    .sidebar-backdrop.open { display: block; }
 
     /* ── SIDEBAR ── */
     .sidebar {
@@ -54,7 +78,7 @@
     .area-badge {
       display: inline-block; font-size: 0.72rem; font-weight: 700;
       padding: 3px 9px; border-radius: 999px;
-      background: #ede9fe; color: #6d28d9;
+      background: #F1E8F7; color: var(--navy);
     }
     .msg-clip {
       display: block; max-width: 320px; color: var(--muted); font-size: 0.82rem;
@@ -90,8 +114,8 @@
     .topbar h1 { font-size: 1.05rem; font-weight: 700; }
     .topbar-right { display: flex; align-items: center; gap: 12px; }
     .export-btn {
-      background: var(--navy); color: #fff;
-      border: none; padding: 8px 16px; border-radius: 7px;
+      background: var(--grad); color: #fff;
+      border: none; padding: 10px 18px; min-height: 40px; border-radius: 7px;
       font-size: 0.82rem; font-weight: 700; cursor: pointer;
       transition: opacity .2s; font-family: inherit;
     }
@@ -125,21 +149,21 @@
     }
     .filter-bar select, .filter-bar input {
       border: 1px solid var(--border); border-radius: 7px;
-      padding: 8px 12px; font-size: 0.85rem; color: var(--text);
+      padding: 10px 12px; min-height: 40px; font-size: 0.85rem; color: var(--text);
       background: var(--bg); outline: none; font-family: inherit;
     }
     .filter-bar input { min-width: 200px; }
     .filter-bar select:focus, .filter-bar input:focus { border-color: var(--navy); }
     .filter-btn {
-      background: var(--navy); color: #fff;
-      border: none; padding: 8px 18px; border-radius: 7px;
+      background: var(--grad); color: #fff;
+      border: none; padding: 10px 20px; min-height: 40px; border-radius: 7px;
       font-size: 0.85rem; font-weight: 700; cursor: pointer;
       font-family: inherit; transition: opacity .2s;
     }
     .filter-btn:hover { opacity: .85; }
     .reset-btn {
       background: none; border: 1px solid var(--border);
-      color: var(--muted); padding: 8px 14px; border-radius: 7px;
+      color: var(--muted); padding: 10px 16px; min-height: 40px; border-radius: 7px;
       font-size: 0.82rem; cursor: pointer; font-family: inherit;
     }
     .reset-btn:hover { border-color: var(--text); color: var(--text); }
@@ -147,18 +171,19 @@
     /* ── TABLE ── */
     .table-wrap {
       background: var(--card); border: 1px solid var(--border);
-      border-radius: 10px; overflow: hidden;
+      border-radius: 10px; overflow-x: auto; overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
     }
     table { width: 100%; border-collapse: collapse; }
     thead th {
-      background: #f8fafc; padding: 12px 14px;
+      background: var(--soft); padding: 12px 14px;
       font-size: 0.78rem; font-weight: 700; color: var(--muted);
       text-align: left; border-bottom: 1px solid var(--border);
       white-space: nowrap;
     }
     tbody tr { border-bottom: 1px solid var(--border); transition: background .12s; cursor: pointer; }
     tbody tr:last-child { border-bottom: none; }
-    tbody tr:hover { background: #f8fafc; }
+    tbody tr:hover { background: var(--soft); }
     td { padding: 13px 14px; font-size: 0.85rem; vertical-align: middle; }
     td.no-data { text-align: center; padding: 48px; color: var(--muted); }
 
@@ -166,20 +191,20 @@
       display: inline-block; font-size: 0.72rem; font-weight: 700;
       padding: 3px 9px; border-radius: 999px;
     }
-    .type-startup { background: #dbeafe; color: #1d4ed8; }
-    .type-small   { background: #d1fae5; color: #065f46; }
+    .type-startup { background: var(--soft); color: #1d4ed8; }
+    .type-small   { background: var(--soft); color: #065f46; }
 
     .status-sel {
       border: 1px solid var(--border); border-radius: 6px;
       padding: 5px 8px; font-size: 0.8rem; cursor: pointer;
       font-family: inherit; outline: none; background: #fff;
     }
-    .status-pending   { color: var(--yellow); border-color: #fde68a; background: #fffbeb; }
-    .status-contacted { color: var(--blue);   border-color: #bfdbfe; background: #eff6ff; }
-    .status-completed { color: var(--green);  border-color: #a7f3d0; background: #ecfdf5; }
+    .status-pending   { color: var(--yellow); border-color: var(--border); background: var(--soft); }
+    .status-contacted { color: var(--blue);   border-color: var(--border); background: var(--soft); }
+    .status-completed { color: var(--green);  border-color: var(--border); background: var(--soft); }
 
     .interest-tag {
-      display: inline-block; background: #f1f5f9; color: var(--muted);
+      display: inline-block; background: var(--soft); color: var(--muted);
       font-size: 0.7rem; padding: 2px 7px; border-radius: 4px; margin: 1px;
     }
 
@@ -191,7 +216,7 @@
     }
     .page-btns { display: flex; gap: 6px; }
     .page-btn {
-      width: 32px; height: 32px; border-radius: 6px;
+      min-width: 40px; height: 40px; border-radius: 6px;
       border: 1px solid var(--border); background: #fff;
       font-size: 0.82rem; cursor: pointer; display: flex;
       align-items: center; justify-content: center;
@@ -236,37 +261,74 @@
     .memo-area:focus { border-color: var(--navy); }
     .modal-actions { display: flex; gap: 10px; margin-top: 16px; }
     .save-btn {
-      flex: 1; background: var(--navy); color: #fff;
+      flex: 1; background: var(--grad); color: #fff;
       border: none; padding: 11px; border-radius: 8px;
       font-size: 0.9rem; font-weight: 700; cursor: pointer; font-family: inherit;
     }
     .save-btn:hover { opacity: .88; }
 
+    /* ── 가입 회원: 단계 진행 표시 ── */
+    .stat-card.c-brand .num { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .step-mini { display: inline-flex; gap: 4px; align-items: center; }
+    .step-dot {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 20px; height: 20px; border-radius: 999px;
+      font-size: 0.66rem; font-weight: 700; line-height: 1;
+    }
+    .step-dot.done { background: var(--grad); color: #fff; }
+    .step-dot.todo { background: var(--soft); color: var(--muted); }
+    .check-list { display: flex; flex-direction: column; gap: 8px; }
+    .check-row  { display: flex; align-items: center; gap: 10px; font-size: 0.88rem; }
+    .check-row .check-label { font-weight: 500; }
+    .check-mark {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 22px; height: 22px; border-radius: 999px;
+      font-size: 0.8rem; font-weight: 700; flex-shrink: 0;
+    }
+    .check-mark.done { background: var(--grad); color: #fff; }
+    .check-mark.todo { background: var(--soft); color: var(--muted); }
+
     @media (max-width: 1100px) { .stats-grid { grid-template-columns: repeat(3, 1fr); } }
     @media (max-width: 768px) {
-      .sidebar { display: none; }
+      .menu-toggle { display: inline-flex; }
+      .sidebar {
+        transform: translateX(-100%);
+        transition: transform .25s ease;
+        box-shadow: 0 18px 50px rgba(0,0,0,0.4);
+      }
+      .sidebar.open { transform: translateX(0); }
       .main { margin-left: 0; }
       .stats-grid { grid-template-columns: repeat(2, 1fr); }
       .content { padding: 16px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { transition: none !important; animation: none !important; }
     }
   </style>
 </head>
 <body>
 
+<!-- 모바일 사이드바 백드롭 -->
+<div class="sidebar-backdrop" id="sidebar-backdrop" onclick="toggleSidebar()"></div>
+
 <!-- SIDEBAR -->
-<aside class="sidebar">
+<aside class="sidebar" id="sidebar-drawer">
   <div class="sidebar-logo">
-    <img src="/logo-zero100-white.png" alt="제로백스쿨" style="height:24px;width:auto;display:block;margin-bottom:6px" />
+    <a href="/admin" aria-label="제로백스쿨 어드민 홈" style="display:inline-block">
+      <img src="/logo-zero100-white.png" alt="제로백스쿨" style="height:24px;width:auto;display:block;margin-bottom:6px" />
+    </a>
     <div class="sub">어드민 패널</div>
   </div>
   <nav class="sidebar-nav">
-    <a class="nav-item active" id="nav-submissions" onclick="showView('submissions')">📋 상담 신청 목록</a>
-    <a class="nav-item" id="nav-consulting" onclick="showView('consulting')">🎓 전문가 컨설팅 신청</a>
+    <a class="nav-item active" id="nav-submissions" role="button" tabindex="0" onclick="showView('submissions')">📋 상담 신청 목록</a>
+    <a class="nav-item" id="nav-consulting" role="button" tabindex="0" onclick="showView('consulting')">🎓 전문가 컨설팅 신청</a>
+    <a class="nav-item" id="nav-members" role="button" tabindex="0" onclick="showView('members')">👥 가입 회원</a>
     <div class="nav-divider">상담 빠른 필터</div>
     <a class="nav-item" href="/admin?type=예비창업자">🚀 예비창업자</a>
     <a class="nav-item" href="/admin?type=소상공인">🏪 소상공인</a>
     <a class="nav-item" href="/admin?status=pending">⏳ 대기중</a>
-    <a class="nav-item" href="/admin?status=contacted">💬 상담중</a>
+    <a class="nav-item" href="/admin?status=contacted">💬 연락함</a>
     <a class="nav-item" href="/admin?status=completed">✅ 완료</a>
     <div class="nav-divider">바로가기</div>
     <a class="nav-item" href="/" target="_blank">🌐 랜딩페이지</a>
@@ -281,7 +343,10 @@
 
   <!-- TOP BAR -->
   <div class="topbar">
-    <h1 id="topbar-title">상담 신청 관리</h1>
+    <div class="topbar-left">
+      <button class="menu-toggle" id="sidebar-toggle" aria-label="메뉴 열기" aria-expanded="false" aria-controls="sidebar-drawer" onclick="toggleSidebar()">☰</button>
+      <h1 id="topbar-title">상담 신청 관리</h1>
+    </div>
     <div class="topbar-right">
       <button class="export-btn" id="export-btn" onclick="exportCSV()">📥 CSV 내보내기</button>
     </div>
@@ -299,7 +364,7 @@
       <div class="stat-card c-startup"> <div class="label">예비창업자</div><div class="num" id="s-startup">-</div></div>
       <div class="stat-card c-small">   <div class="label">소상공인</div><div class="num" id="s-small">-</div></div>
       <div class="stat-card c-pending"> <div class="label">대기중</div><div class="num" id="s-pending">-</div><div class="sub">연락 필요</div></div>
-      <div class="stat-card c-contact"> <div class="label">상담중</div><div class="num" id="s-contacted">-</div></div>
+      <div class="stat-card c-contact"> <div class="label">연락함</div><div class="num" id="s-contacted">-</div></div>
       <div class="stat-card c-complete"><div class="label">완료</div><div class="num" id="s-completed">-</div></div>
     </div>
 
@@ -313,7 +378,7 @@
       <select id="f-status">
         <option value="">전체 상태</option>
         <option value="pending">대기중</option>
-        <option value="contacted">상담중</option>
+        <option value="contacted">연락함</option>
         <option value="completed">완료</option>
       </select>
       <input type="text" id="f-q" placeholder="이름 / 연락처 / 상호명 검색..." />
@@ -355,7 +420,7 @@
       <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
         <div class="stat-card c-total">   <div class="label">전체 신청</div><div class="num" id="cs-total">-</div><div class="sub">누적</div></div>
         <div class="stat-card c-pending"> <div class="label">대기중</div><div class="num" id="cs-pending">-</div><div class="sub">연락 필요</div></div>
-        <div class="stat-card c-contact"> <div class="label">상담중</div><div class="num" id="cs-contacted">-</div></div>
+        <div class="stat-card c-contact"> <div class="label">연락함</div><div class="num" id="cs-contacted">-</div></div>
         <div class="stat-card c-complete"><div class="label">완료</div><div class="num" id="cs-completed">-</div></div>
       </div>
 
@@ -364,7 +429,7 @@
         <select id="cf-status" onchange="loadConsulting()">
           <option value="">전체 상태</option>
           <option value="pending">대기중</option>
-          <option value="contacted">상담중</option>
+          <option value="contacted">연락함</option>
           <option value="completed">완료</option>
         </select>
         <button class="reset-btn" onclick="document.getElementById('cf-status').value='';loadConsulting()">초기화</button>
@@ -392,11 +457,47 @@
 
     </div><!-- /view-consulting -->
 
+    <!-- ══════ VIEW: 가입 회원 ══════ -->
+    <div id="view-members" style="display:none">
+
+      <!-- STATS -->
+      <div class="stats-grid" style="grid-template-columns:repeat(7,1fr)">
+        <div class="stat-card c-total">   <div class="label">총 가입 회원</div><div class="num" id="m-total">-</div><div class="sub">누적</div></div>
+        <div class="stat-card c-startup"> <div class="label">프로필</div><div class="num" id="m-profile">-</div><div class="sub">STEP 1</div></div>
+        <div class="stat-card c-small">   <div class="label">아이템</div><div class="num" id="m-item">-</div><div class="sub">STEP 2</div></div>
+        <div class="stat-card c-pending"> <div class="label">분석</div><div class="num" id="m-analysis">-</div><div class="sub">STEP 3</div></div>
+        <div class="stat-card c-contact"> <div class="label">계획서</div><div class="num" id="m-plan">-</div><div class="sub">STEP 4·5</div></div>
+        <div class="stat-card c-complete"><div class="label">발표</div><div class="num" id="m-deck">-</div><div class="sub">STEP 6</div></div>
+        <div class="stat-card c-brand">   <div class="label">컨설팅</div><div class="num" id="m-consulting">-</div><div class="sub">STEP 7</div></div>
+      </div>
+
+      <!-- TABLE -->
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>이름</th>
+              <th>이메일</th>
+              <th>상호명</th>
+              <th>가입일</th>
+              <th>진행 단계</th>
+              <th>현재 단계</th>
+            </tr>
+          </thead>
+          <tbody id="members-body">
+            <tr><td class="no-data" colspan="7">데이터 로딩 중...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div><!-- /view-members -->
+
   </div>
 </div>
 
 <!-- DETAIL MODAL -->
-<div class="modal-overlay" id="modal">
+<div class="modal-overlay" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
   <div class="modal">
     <div class="modal-head">
       <h3 id="modal-title">상담 신청 상세</h3>
@@ -472,10 +573,10 @@
         return `<span class="interest-tag">${esc(short)}</span>`;
       }).join('');
       const statusClass = `status-${r.status}`;
-      const statusLabel = { pending: '대기중', contacted: '상담중', completed: '완료' }[r.status] || r.status;
+      const statusLabel = { pending: '대기중', contacted: '연락함', completed: '완료' }[r.status] || r.status;
       const date = new Date(r.created_at).toLocaleString('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
       return `
-        <tr onclick="openModal(${r.id})">
+        <tr onclick="openModal(${r.id})" tabindex="0" role="button">
           <td style="color:var(--muted);font-size:.78rem">#${r.id}</td>
           <td><span class="type-badge ${typeClass}">${esc(r.type)}</span></td>
           <td style="font-weight:600">${esc(r.name)}</td>
@@ -486,7 +587,7 @@
           <td onclick="event.stopPropagation()">
             <select class="status-sel ${statusClass}" onchange="updateStatus(${r.id}, this)">
               <option value="pending"   ${r.status==='pending'  ?'selected':''}>대기중</option>
-              <option value="contacted" ${r.status==='contacted'?'selected':''}>상담중</option>
+              <option value="contacted" ${r.status==='contacted'?'selected':''}>연락함</option>
               <option value="completed" ${r.status==='completed'?'selected':''}>완료</option>
             </select>
           </td>
@@ -536,7 +637,7 @@
 
     document.getElementById('modal-title').textContent = `#${r.id} ${r.name} 상담 상세`;
     const interestList = (r.interests || []).map(i => `<span class="interest-tag">${esc(i)}</span>`).join(' ');
-    const statusLabel  = { pending: '⏳ 대기중', contacted: '💬 상담중', completed: '✅ 완료' }[r.status];
+    const statusLabel  = { pending: '⏳ 대기중', contacted: '💬 연락함', completed: '✅ 완료' }[r.status];
     const industry     = r.business_type || r.industry || '-';
 
     document.getElementById('modal-body').innerHTML = `
@@ -608,6 +709,19 @@
   let consultingData = [];
 
   function showView(view) {
+    // ── 가입 회원 뷰 분기 (신규 — 기존 이진 토글 로직 앞에서 선처리) ──
+    if (view === 'members') {
+      document.getElementById('view-submissions').style.display = 'none';
+      document.getElementById('view-consulting').style.display  = 'none';
+      document.getElementById('view-members').style.display     = '';
+      document.getElementById('nav-submissions').classList.remove('active');
+      document.getElementById('nav-consulting').classList.remove('active');
+      document.getElementById('nav-members').classList.add('active');
+      document.getElementById('topbar-title').textContent = '가입 회원 관리';
+      document.getElementById('export-btn').style.display = 'none';
+      if (!membersLoaded) loadMembers();
+      return;
+    }
     const isSub = view === 'submissions';
     document.getElementById('view-submissions').style.display = isSub ? '' : 'none';
     document.getElementById('view-consulting').style.display  = isSub ? 'none' : '';
@@ -616,6 +730,9 @@
     document.getElementById('topbar-title').textContent = isSub ? '상담 신청 관리' : '전문가 컨설팅 신청 관리';
     document.getElementById('export-btn').style.display = isSub ? '' : 'none';
     if (!isSub && !consultingLoaded) loadConsulting();
+    // ── 회원 뷰는 이 경로(상담/컨설팅)에서 항상 숨김 (신규 분기 보정) ──
+    document.getElementById('view-members').style.display = 'none';
+    document.getElementById('nav-members').classList.remove('active');
   }
 
   // ── 컨설팅 목록 로드 ──
@@ -663,7 +780,7 @@
       const contact = r.user_phone || r.user_email || '-';
       const area    = r.area || '-';
       return `
-        <tr onclick="openConsultingModal(${r.id})">
+        <tr onclick="openConsultingModal(${r.id})" tabindex="0" role="button">
           <td style="color:var(--muted);font-size:.78rem">#${r.id}</td>
           <td style="font-weight:600">${esc(r.user_name || '(탈퇴 회원)')}</td>
           <td>${esc(contact)}</td>
@@ -673,7 +790,7 @@
           <td onclick="event.stopPropagation()">
             <select class="status-sel ${statusClass}" onchange="updateConsultingStatus(${r.id}, this)">
               <option value="pending"   ${r.status==='pending'  ?'selected':''}>대기중</option>
-              <option value="contacted" ${r.status==='contacted'?'selected':''}>상담중</option>
+              <option value="contacted" ${r.status==='contacted'?'selected':''}>연락함</option>
               <option value="completed" ${r.status==='completed'?'selected':''}>완료</option>
             </select>
           </td>
@@ -700,7 +817,7 @@
     if (!r) return;
 
     const area        = r.area || '-';
-    const statusLabel = { pending: '⏳ 대기중', contacted: '💬 상담중', completed: '✅ 완료' }[r.status] || r.status;
+    const statusLabel = { pending: '⏳ 대기중', contacted: '💬 연락함', completed: '✅ 완료' }[r.status] || r.status;
     const ctx     = r.context || {};
     const profile = ctx.profile || {};
     const user    = ctx.user || {};
@@ -734,9 +851,235 @@
     document.getElementById('modal').classList.add('open');
   }
 
+  // ════════════════════════════════════════════
+  //  뷰 전환: 가입 회원 (STEP1~7 진행 현황)
+  // ════════════════════════════════════════════
+  let membersLoaded = false;
+  let membersData = [];
+
+  // 미니 진행바 7단계 정의 (STEP4 매칭 = s_plan 완료 시 완료 간주)
+  const MEMBER_STEPS = [
+    { key: 's_profile',    no: 1, label: '프로필' },
+    { key: 's_item',       no: 2, label: '아이템' },
+    { key: 's_analysis',   no: 3, label: '분석' },
+    { key: 's_plan',       no: 4, label: '매칭' },
+    { key: 's_plan',       no: 5, label: '계획서' },
+    { key: 's_deck',       no: 6, label: '발표' },
+    { key: 's_consulting', no: 7, label: '컨설팅' },
+  ];
+
+  // 가장 멀리 도달한 단계 계산: consulting>deck>plan>analysis>item>profile
+  function memberCurrentStep(m) {
+    if (m.s_consulting) return { no: 7, label: '컨설팅' };
+    if (m.s_deck)       return { no: 6, label: '발표' };
+    if (m.s_plan)       return { no: 5, label: '계획서' };
+    if (m.s_analysis)   return { no: 3, label: '분석' };
+    if (m.s_item)       return { no: 2, label: '아이템' };
+    if (m.s_profile)    return { no: 1, label: '프로필' };
+    return { no: 0, label: '가입만' };
+  }
+  function memberCurrentLabel(m) {
+    const c = memberCurrentStep(m);
+    return c.no ? `STEP ${c.no} · ${esc(c.label)}` : esc(c.label);
+  }
+
+  // ── 회원 목록 로드 ──
+  async function loadMembers() {
+    membersLoaded = true;
+    document.getElementById('members-body').innerHTML =
+      '<tr><td class="no-data" colspan="7">로딩 중...</td></tr>';
+    try {
+      const res  = await fetch('/api/admin/members');
+      const json = await res.json();
+      membersData = json.data || [];
+      renderMembers();
+      renderMemberStats();
+    } catch (e) {
+      document.getElementById('members-body').innerHTML =
+        '<tr><td class="no-data" colspan="7">데이터 로드 실패</td></tr>';
+    }
+  }
+
+  function renderMemberStats() {
+    const all = membersData;
+    document.getElementById('m-total').textContent      = all.length;
+    document.getElementById('m-profile').textContent    = all.filter(m => m.s_profile).length;
+    document.getElementById('m-item').textContent       = all.filter(m => m.s_item).length;
+    document.getElementById('m-analysis').textContent   = all.filter(m => m.s_analysis).length;
+    document.getElementById('m-plan').textContent       = all.filter(m => m.s_plan).length;
+    document.getElementById('m-deck').textContent       = all.filter(m => m.s_deck).length;
+    document.getElementById('m-consulting').textContent = all.filter(m => m.s_consulting).length;
+  }
+
+  function memberStepDots(m) {
+    return MEMBER_STEPS.map(s => {
+      const done = !!m[s.key];
+      return `<span class="step-dot ${done ? 'done' : 'todo'}" title="STEP ${s.no} · ${esc(s.label)}${done ? ' (완료)' : ''}">${s.no}</span>`;
+    }).join('');
+  }
+
+  function renderMembers() {
+    const tbody = document.getElementById('members-body');
+    if (!membersData.length) {
+      tbody.innerHTML = '<tr><td class="no-data" colspan="7">가입 회원이 없습니다.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = membersData.map(m => {
+      const date = m.created_at
+        ? new Date(m.created_at).toLocaleString('ko-KR',{year:'2-digit',month:'2-digit',day:'2-digit'})
+        : '-';
+      return `
+        <tr onclick="openMemberModal(${m.id})" tabindex="0" role="button">
+          <td style="color:var(--muted);font-size:.78rem">#${m.id}</td>
+          <td style="font-weight:600">${esc(m.name || '-')}</td>
+          <td>${esc(m.email || '-')}</td>
+          <td>${esc(m.biz_name || '-')}</td>
+          <td style="color:var(--muted);font-size:.78rem">${date}</td>
+          <td><span class="step-mini">${memberStepDots(m)}</span></td>
+          <td><span class="area-badge">${memberCurrentLabel(m)}</span></td>
+        </tr>`;
+    }).join('');
+  }
+
+  // ── 회원 상세 모달 (#modal 재사용) ──
+  function openMemberModal(id) {
+    const m = membersData.find(x => x.id === id);
+    if (!m) return;
+
+    const segs = Array.isArray(m.segments) ? m.segments.join(', ') : (m.segments || '-');
+    const checklist = MEMBER_STEPS.map(s => {
+      const done = !!m[s.key];
+      return `<div class="check-row"><span class="check-mark ${done ? 'done' : 'todo'}">${done ? '✓' : '○'}</span><span class="check-label">STEP ${s.no} · ${esc(s.label)}</span></div>`;
+    }).join('');
+
+    document.getElementById('modal-title').textContent = `#${m.id} ${m.name || ''} 회원 상세`;
+    document.getElementById('modal-body').innerHTML = `
+      <div class="detail-grid">
+        <div class="detail-item"><div class="dl">이름</div><div class="dv">${esc(m.name || '-')}</div></div>
+        <div class="detail-item"><div class="dl">현재 단계</div><div class="dv">${memberCurrentLabel(m)}</div></div>
+        <div class="detail-item"><div class="dl">이메일</div><div class="dv">${esc(m.email || '-')}</div></div>
+        <div class="detail-item"><div class="dl">연락처</div><div class="dv">${m.phone ? `<a href="tel:${esc(m.phone)}">${esc(m.phone)}</a>` : '-'}</div></div>
+        <div class="detail-item"><div class="dl">상호명</div><div class="dv">${esc(m.biz_name || '-')}</div></div>
+        <div class="detail-item"><div class="dl">가입일</div><div class="dv">${m.created_at ? new Date(m.created_at).toLocaleString('ko-KR') : '-'}</div></div>
+      </div>
+      <div class="detail-full">
+        <div class="dl">회원 프로필</div>
+        <div class="ctx-box">
+          <div><span class="k">상호명</span>${esc(m.biz_name || '-')}</div>
+          <div><span class="k">고객 세그먼트</span>${esc(segs)}</div>
+          <div><span class="k">업종코드</span>${esc(m.industry_code || '-')}</div>
+          <div><span class="k">지역</span>${esc(m.region_sido || '-')}</div>
+        </div>
+      </div>
+      <div class="detail-full">
+        <div class="dl">단계별 진행 (STEP 1~7)</div>
+        <div class="check-list">${checklist}</div>
+      </div>`;
+
+    document.getElementById('modal').classList.add('open');
+  }
+
+  // ════════════════════════════════════════════
+  //  모바일 사이드바 드로어 토글 (표시 전용 — 기존 로직 불변)
+  // ════════════════════════════════════════════
+  function toggleSidebar() {
+    const sb  = document.getElementById('sidebar-drawer');
+    const bd  = document.getElementById('sidebar-backdrop');
+    const btn = document.getElementById('sidebar-toggle');
+    const open = sb.classList.toggle('open');
+    bd.classList.toggle('open', open);
+    if (btn) {
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      btn.setAttribute('aria-label', open ? '메뉴 닫기' : '메뉴 열기');
+    }
+  }
+  // 모바일에서 사이드바 항목 선택 시 드로어 닫기 (기존 onclick과 별개로 동작)
+  document.querySelectorAll('.sidebar-nav .nav-item').forEach((el) => {
+    el.addEventListener('click', () => {
+      const sb = document.getElementById('sidebar-drawer');
+      if (sb.classList.contains('open')) toggleSidebar();
+    });
+  });
+  // 키보드 접근성: role="button" 요소에서 Enter/Space로 클릭 트리거 (기존 핸들러 호출만)
+  document.addEventListener('keydown', (e) => {
+    const t = e.target;
+    if (!t || typeof t.getAttribute !== 'function') return;
+    if (t.getAttribute('role') !== 'button' || t.tagName === 'BUTTON') return;
+    if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
+      e.preventDefault();
+      t.click();
+    }
+  });
+
   // 초기 로드
   loadStats();
   loadData(1);
+</script>
+
+<script>
+  // ── 접근성: 모달 다이얼로그 포커스 관리 (WCAG 2.4.3 / 2.1.2) ──
+  // 기존 로직/함수(openModal·openConsultingModal·closeModal 등) 불변 — 결합만 추가.
+  // #modal 의 'open' 클래스 변화를 MutationObserver로 감지해
+  // (1) 트리거 저장 → (2) 모달 내부로 포커스 이동 → (3) Tab/Shift+Tab 트랩 →
+  // Esc 로 기존 close 경로 호출 → 닫힐 때 트리거로 포커스 복귀.
+  (function () {
+    var modal = document.getElementById('modal');
+    if (!modal || modal.__a11yFocusBound) return;
+    modal.__a11yFocusBound = true;
+
+    var FOCUSABLE = 'a[href],area[href],button:not([disabled]),input:not([disabled]):not([type="hidden"]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+    var lastTrigger = null;
+
+    // 모달 밖에서 마지막으로 포커스된 요소를 추적 → 닫힐 때 복귀 대상
+    document.addEventListener('focusin', function (e) {
+      if (!modal.contains(e.target)) lastTrigger = e.target;
+    }, true);
+
+    function focusable() {
+      return Array.prototype.filter.call(modal.querySelectorAll(FOCUSABLE), function (el) {
+        return el.offsetWidth > 0 || el.offsetHeight > 0 || el.getClientRects().length > 0;
+      });
+    }
+    function closeIt() {
+      if (typeof closeModal === 'function') closeModal();
+      else modal.classList.remove('open');
+    }
+
+    // Esc 닫기 + 포커스 트랩 (캡처 단계에서 선제 처리)
+    document.addEventListener('keydown', function (e) {
+      if (!modal.classList.contains('open')) return;
+      if (e.key === 'Escape' || e.key === 'Esc') { e.preventDefault(); closeIt(); return; }
+      if (e.key !== 'Tab') return;
+      var f = focusable();
+      if (!f.length) { e.preventDefault(); modal.focus(); return; }
+      var first = f[0], last = f[f.length - 1], a = document.activeElement;
+      if (a === modal || !modal.contains(a)) { e.preventDefault(); (e.shiftKey ? last : first).focus(); return; }
+      if (e.shiftKey && a === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && a === last) { e.preventDefault(); first.focus(); }
+    }, true);
+
+    function onOpen() {
+      if (!modal.hasAttribute('tabindex')) modal.setAttribute('tabindex', '-1');
+      setTimeout(function () {
+        var f = focusable();
+        (f.length ? f[0] : modal).focus();
+      }, 0);
+    }
+    function onClose() {
+      var el = lastTrigger;
+      setTimeout(function () {
+        if (el && document.contains(el) && typeof el.focus === 'function') el.focus();
+      }, 0);
+    }
+
+    var wasOpen = modal.classList.contains('open');
+    new MutationObserver(function () {
+      var isOpen = modal.classList.contains('open');
+      if (isOpen === wasOpen) return;
+      wasOpen = isOpen;
+      if (isOpen) onOpen(); else onClose();
+    }).observe(modal, { attributes: true, attributeFilter: ['class'] });
+  })();
 </script>
 </body>
 </html>

@@ -91,14 +91,20 @@ app.use(session({
   },
 }));
 
-// ── CSRF 방어 (sameSite 쿠키 + Origin 검증 이중) ──
-// 상태 변경 요청(POST/PUT/PATCH/DELETE)은 same-origin 에서만 허용
+// ── CSRF 방어 (sameSite=lax 쿠키 1차 + Origin/Referer 호스트 검증 2차) ──
+// 상태 변경 요청(POST/PUT/PATCH/DELETE)에서 출처 호스트가 요청 호스트와 "다를 때만" 차단한다.
+// Origin 이 없거나 'null'(불투명 출처: 일부 브라우저·리다이렉트·프라이버시 설정)인 경우는
+// SameSite=lax 세션 쿠키 방어에 의존하고 통과시킨다 — 정상 사용자를 오차단하지 않기 위함.
 app.use((req, res, next) => {
   if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)) {
-    const origin = req.get('origin') || req.get('referer') || '';
-    const host   = req.get('host') || '';
-    if (origin && host && !origin.includes(host)) {
-      return res.status(403).json({ success: false, message: '요청 출처가 올바르지 않습니다.' });
+    const host = req.get('host') || '';
+    const raw  = req.get('origin') || req.get('referer') || '';
+    if (raw && raw !== 'null' && host) {
+      let originHost = '';
+      try { originHost = new URL(raw).host; } catch (_) { originHost = ''; }
+      if (originHost && originHost !== host) {
+        return res.status(403).json({ success: false, message: '요청 출처가 올바르지 않습니다.' });
+      }
     }
   }
   next();
@@ -446,6 +452,9 @@ app.post('/api/items', requireAuth, async (req, res) => {
     if (!pr.rows[0]) return res.status(400).json({ error: '먼저 프로필을 입력해주세요.', needProfile: true });
     const pid = pr.rows[0].id;
     const b = req.body;
+    // 차별화 전략은 공백 제거 후 정확히 3개 (문서화된 불변식 서버측 강제)
+    const strat = Array.isArray(b.strategies) ? b.strategies.map((x) => (x || '').trim()).filter(Boolean) : [];
+    if (strat.length !== 3) return res.status(400).json({ error: '차별화 전략 3가지를 모두 입력해주세요.' });
     await pool.query(`INSERT INTO item_overview (profile_id,usage_spec_price,core_function,customer_benefit) VALUES ($1,$2,$3,$4)
       ON CONFLICT (profile_id) DO UPDATE SET usage_spec_price=$2,core_function=$3,customer_benefit=$4`,
       [pid, b.usageSpecPrice || null, b.coreFunction || null, b.customerBenefit || null]);
@@ -455,7 +464,7 @@ app.post('/api/items', requireAuth, async (req, res) => {
     await pool.query(`INSERT INTO item_feasibility (profile_id,dev_plan,output_form,output_qty) VALUES ($1,$2,$3,$4)
       ON CONFLICT (profile_id) DO UPDATE SET dev_plan=$2,output_form=$3,output_qty=$4`,
       [pid, b.devPlan || null, b.outputForm || null, b.outputQty || null]);
-    const s = Array.isArray(b.strategies) ? b.strategies : [];
+    const s = strat;
     await pool.query(`INSERT INTO item_differentiation (profile_id,strategy_1,strategy_2,strategy_3) VALUES ($1,$2,$3,$4)
       ON CONFLICT (profile_id) DO UPDATE SET strategy_1=$2,strategy_2=$3,strategy_3=$4`,
       [pid, s[0] || null, s[1] || null, s[2] || null]);
@@ -472,9 +481,12 @@ app.post('/api/items/name-suggestions', requireAuth, async (req, res) => {
       LEFT JOIN item_problem ip ON ip.profile_id=cp.id
       WHERE cp.user_id=$1`, [req.session.userId]);
     const p = pr.rows[0];
-    if (!p) return res.status(400).json({ error: '프로필/아이템을 먼저 입력해주세요.' });
+    if (!p) return res.status(400).json({ error: '먼저 프로필을 입력해주세요.', needProfile: true });
+    // 아이템(개요/문제) 미입력 시 차단 — LEFT JOIN이라 프로필만 있으면 p가 truthy이므로 명시 검사
+    if (p.core_function == null && p.customer_benefit == null && p.problem_point == null)
+      return res.status(400).json({ error: '먼저 아이템을 입력해주세요.', needItem: true });
 
-    // ── 목업 생성 ── // TODO: AI 연동 (Claude API로 합격형 아이템명 3안 생성)
+    // ── 목업 생성 ── // TODO: AI 연동 (LLM API로 합격형 아이템명 3안 생성)
     const kw = p.core_function || p.core_tech || p.industry_code || '혁신 기술';
     const benefit = p.customer_benefit || '맞춤형';
     const target = (p.segments || []).includes('SMB') ? '소상공인' : '창업기업';
@@ -522,7 +534,7 @@ app.post('/api/analysis', requireAuth, async (req, res) => {
     const p = pr.rows[0];
     if (!p) return res.status(400).json({ error: '프로필을 먼저 입력해주세요.' });
 
-    // ── 목업 분석 ── // TODO: AI 연동 (점수·코멘트를 Claude로 생성. 대외 명칭은 '전문 액셀러레이터 분석')
+    // ── 목업 분석 ── // TODO: AI 연동 (점수·코멘트를 LLM으로 생성. 대외 명칭은 '전문 액셀러레이터 분석')
     const len = (s) => (s || '').length;
     const sc = (s) => Math.min(5, Math.max(2, 2 + Math.floor(len(s) / 30)));
     const stratCount = [p.strategy_1, p.strategy_2, p.strategy_3].filter(Boolean).length;
@@ -576,7 +588,9 @@ app.post('/api/plans/generate', requireAuth, async (req, res) => {
     const p = pr.rows[0];
     if (!p) return res.status(400).json({ error: '먼저 프로필을 입력해주세요.' });
     const prog = await pool.query(`SELECT name FROM gov_program WHERE program_id=$1`, [programId]);
-    const progName = prog.rows[0]?.name || '선택 공고';
+    // 존재하지 않는 공고 → application FK 위반(500) 대신 우아한 400
+    if (!prog.rows[0]) return res.status(400).json({ error: '유효하지 않은 공고입니다.' });
+    const progName = prog.rows[0].name;
 
     const app = await pool.query(`INSERT INTO application (user_id,program_id,status) VALUES ($1,$2,'PLAN_DRAFTING')
       ON CONFLICT (user_id,program_id) DO UPDATE SET status='PLAN_DRAFTING',updated_at=NOW() RETURNING id`,
@@ -620,8 +634,9 @@ app.post('/api/plans/:planId/sections/:key/regenerate', requireAuth, async (req,
     const own = await pool.query(`SELECT bp.id FROM business_plan bp JOIN application a ON a.id=bp.application_id WHERE bp.id=$1 AND a.user_id=$2`, [planId, req.session.userId]);
     if (!own.rows[0]) return res.status(404).json({ error: '없음' });
     // ── 목업 ── // TODO: AI 연동 (해당 섹션만 재생성)
-    const content = `[재생성됨] 이 섹션은 새로 생성된 목업 내용입니다. (AI 연동 시 실제 재생성으로 교체)`;
-    await pool.query(`UPDATE business_plan_section SET content=$1,version=version+1 WHERE plan_id=$2 AND section_key=$3`, [content, planId, req.params.key]);
+    const content = `[재생성됨] 이 섹션은 새로 생성된 샘플 내용입니다. 실제 재생성은 순차 오픈됩니다.`;
+    const upd = await pool.query(`UPDATE business_plan_section SET content=$1,version=version+1 WHERE plan_id=$2 AND section_key=$3`, [content, planId, req.params.key]);
+    if (upd.rowCount === 0) return res.status(404).json({ error: '섹션을 찾을 수 없습니다.' });
     res.json({ success: true, content });
   } catch (err) { res.status(500).json({ error: '재생성 실패' }); }
 });
@@ -657,8 +672,17 @@ app.post('/api/decks/generate', requireAuth, async (req, res) => {
 
 app.get('/api/decks/:deckId', requireAuth, async (req, res) => {
   try {
-    const slides = await pool.query(`SELECT order_no,slide_type,headline,body_content,visual_suggestion FROM pitch_deck_slide WHERE deck_id=$1 ORDER BY order_no`, [parseInt(req.params.deckId)]);
-    res.json({ deckId: parseInt(req.params.deckId), slides: slides.rows });
+    const deckId = parseInt(req.params.deckId);
+    // 소유검사: deck → business_plan → application → 세션 사용자 (미소유/미존재는 404)
+    const own = await pool.query(
+      `SELECT pd.id FROM pitch_deck pd
+         JOIN business_plan bp ON bp.id = pd.plan_id
+         JOIN application a   ON a.id = bp.application_id
+       WHERE pd.id = $1 AND a.user_id = $2`,
+      [deckId, req.session.userId]);
+    if (!own.rows[0]) return res.status(404).json({ error: '없음' });
+    const slides = await pool.query(`SELECT order_no,slide_type,headline,body_content,visual_suggestion FROM pitch_deck_slide WHERE deck_id=$1 ORDER BY order_no`, [deckId]);
+    res.json({ deckId, slides: slides.rows });
   } catch (err) { res.status(500).json({ error: '조회 실패' }); }
 });
 
@@ -861,6 +885,30 @@ app.patch('/api/admin/consulting/:id', requireAdmin, async (req, res) => {
   } catch (err) {
     console.error(err.message);
     res.status(500).json({ success: false });
+  }
+});
+
+// ── 어드민: 가입 회원 + 단계 진행 현황 (STEP1~7 퍼널 추적, 과금 근거) ──
+app.get('/api/admin/members', requireAdmin, async (req, res) => {
+  try {
+    const { rows } = await pool.query(`
+      SELECT u.id, u.email, u.name, u.phone, u.created_at,
+        cp.biz_name, cp.segments, cp.industry_code, cp.region_sido,
+        (cp.id IS NOT NULL) AS s_profile,
+        EXISTS(SELECT 1 FROM item_overview io WHERE io.profile_id = cp.id) AS s_item,
+        EXISTS(SELECT 1 FROM accelerator_analysis aa WHERE aa.profile_id = cp.id) AS s_analysis,
+        EXISTS(SELECT 1 FROM business_plan bp JOIN application a ON a.id = bp.application_id WHERE a.user_id = u.id) AS s_plan,
+        EXISTS(SELECT 1 FROM pitch_deck pd JOIN business_plan bp ON bp.id = pd.plan_id JOIN application a ON a.id = bp.application_id WHERE a.user_id = u.id) AS s_deck,
+        EXISTS(SELECT 1 FROM consulting_request cr WHERE cr.user_id = u.id) AS s_consulting
+      FROM users u
+      LEFT JOIN customer_profile cp ON cp.user_id = u.id
+      WHERE u.role = 'member' OR u.role IS NULL
+      ORDER BY u.created_at DESC
+    `);
+    res.json({ data: rows });
+  } catch (err) {
+    console.error('members error:', err.message);
+    res.status(500).json({ error: '회원 목록 조회 실패' });
   }
 });
 
