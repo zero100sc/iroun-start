@@ -237,7 +237,8 @@
     .proc-step h4 { font-size: 1rem; font-weight: 700; margin: 14px 0 8px; letter-spacing: -0.01em; }
     .proc-step p { font-size: 0.84rem; color: var(--muted); line-height: 1.6; }
     .proc-step .arrow { position: absolute; top: 50%; right: -13px; transform: translateY(-50%); color: var(--line); z-index: 1; }
-    .proc-step:last-child .arrow { display: none; }
+    /* 7단계(4+3 배치): 각 행 끝(4의 배수)과 마지막 카드는 화살표 숨김 */
+    .proc-step:nth-child(4n) .arrow, .proc-step:last-child .arrow { display: none; }
 
     /* ── TESTIMONIALS ── */
     .testi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; margin-top: 48px; }
@@ -532,13 +533,17 @@
 <!-- ── PROCESS ── -->
 <section id="process" class="section paper">
   <div class="wrap">
-    <span class="eyebrow">컨설팅 과정</span>
-    <h2 class="h-sec">4단계로 완성되는<br />정부지원 수혜 과정</h2>
+    <span class="eyebrow">이용 과정</span>
+    <h2 class="h-sec">7단계로 완성되는<br />정부지원 성공 여정</h2>
+    <p class="sub-sec">AI 자동화 6단계 + 전문가 컨설팅 1단계. 한 번 입력한 프로필로 매칭부터 사업계획서·발표자료까지 하나의 흐름으로 이어집니다.</p>
     <div class="proc-grid">
-      <div class="proc-step reveal"><div class="proc-n">STEP 01</div><h4>무료 상담 신청</h4><p>아래 폼 작성 후 24시간 내 전담 컨설턴트가 연락드립니다</p><svg class="arrow" aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="m9 18 6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-      <div class="proc-step reveal"><div class="proc-n">STEP 02</div><h4>현황 진단 & 매칭</h4><p>상황에 딱 맞는 지원사업을 최대 5개 추천해드립니다</p><svg class="arrow" aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="m9 18 6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-      <div class="proc-step reveal"><div class="proc-n">STEP 03</div><h4>사업계획서 & 서류 준비</h4><p>전담 컨설턴트와 함께 선정 가능성을 최대로 높입니다</p><svg class="arrow" aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="m9 18 6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-      <div class="proc-step reveal"><div class="proc-n">STEP 04</div><h4>신청 & 사후관리</h4><p>선정 후 정산·보고까지 끝까지 함께합니다</p></div>
+      <div class="proc-step reveal"><div class="proc-n">STEP 01</div><h4>프로필 입력</h4><p>사업 기본정보와 고객 세그먼트를 한 번만 입력하면 모든 단계의 기초가 됩니다</p><svg class="arrow" aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="m9 18 6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="proc-step reveal"><div class="proc-n">STEP 02</div><h4>아이템 정의</h4><p>아이템 개요·문제·실현성·차별화를 정리하고 AI가 아이템명을 제안합니다</p><svg class="arrow" aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="m9 18 6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="proc-step reveal"><div class="proc-n">STEP 03</div><h4>액셀러레이터 분석</h4><p>문제적합성·시장·창업자·차별성·확장성 5개 영역을 진단합니다</p><svg class="arrow" aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="m9 18 6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="proc-step reveal"><div class="proc-n">STEP 04</div><h4>정부지원사업 매칭</h4><p>세그먼트·단계·업종 규칙 기반으로 딱 맞는 지원사업을 매칭률·근거와 함께 추천합니다</p><svg class="arrow" aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="m9 18 6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="proc-step reveal"><div class="proc-n">STEP 05</div><h4>사업계획서 작성</h4><p>문제·실현성·성장·팀 4개 핵심 섹션 초안을 작성하고 hwpx로 내보냅니다</p><svg class="arrow" aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="m9 18 6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="proc-step reveal"><div class="proc-n">STEP 06</div><h4>발표(IR) 슬라이드</h4><p>사업계획서를 기반으로 9장 구성의 IR 피치덱 초안을 만듭니다</p><svg class="arrow" aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="m9 18 6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="proc-step reveal"><div class="proc-n">STEP 07</div><h4>전문가 컨설팅</h4><p>전담 컨설턴트가 사업계획서 첨삭·발표 코칭을 1:1로 지원합니다</p></div>
     </div>
   </div>
 </section>
