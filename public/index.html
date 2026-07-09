@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>제로백스쿨 — 예비창업자·소상공인 정부지원사업 전문 컨설팅</title>
+  <title>제로백스쿨 — 정부지원사업 전문 서포터즈</title>
   <meta name="description" content="정부지원사업, 더 이상 혼자 고민하지 마세요. 전문가가 함께합니다. 제로백스쿨." />
   <link rel="icon" href="/logo-zero100-square.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -91,7 +91,7 @@
     .hamburger span { display: block; width: 22px; height: 2px; background: var(--text); margin: 5px 0; border-radius: 2px; }
 
     /* ── HERO ── */
-    .hero { position: relative; background: var(--ink); overflow: hidden; padding: 150px 0 110px; }
+    .hero { position: relative; background: var(--ink); overflow: hidden; padding: 150px 0 60px; }
     .hero::before {
       content: ''; position: absolute; inset: 0; pointer-events: none;
       background:
@@ -126,7 +126,7 @@
     .hero-second { font-size: clamp(1.15rem, 2.2vw, 1.5rem); font-weight: 700; color: rgba(255,255,255,0.85); margin-bottom: 32px; line-height: 1.5; text-align: center; }
     .hero-second .grad-em { font-style: normal; background: linear-gradient(120deg, #A24BC9, #E6197E); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800; }
     .hero-trust { display: flex; gap: 22px; margin-top: 38px; flex-wrap: wrap; justify-content: center; }
-    .trust-item { color: rgba(255,255,255,0.58); font-size: 0.82rem; display: flex; align-items: center; gap: 7px; }
+    .trust-item { color: rgba(255,255,255,0.58); font-size: 1.08rem; display: flex; align-items: center; gap: 7px; }
     .trust-item svg { flex-shrink: 0; }
 
     /* ── SIGNATURE: 매칭 카드 스택 ── */
@@ -287,6 +287,10 @@
     .check-item span { font-size: 0.87rem; }
     .check-sub { font-size: 0.78rem; color: var(--muted); }
     .form-notice { background: #FBF0F7; border: 1px solid #F3CFE5; border-radius: 10px; padding: 13px 16px; font-size: 0.82rem; color: #8A2362; margin-bottom: 22px; display: flex; gap: 9px; align-items: flex-start; }
+    .privacy-agree { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 18px; }
+    .privacy-agree input[type="checkbox"] { width: 17px; height: 17px; margin-top: 2px; accent-color: var(--magenta); flex-shrink: 0; cursor: pointer; }
+    .privacy-agree label { font-size: 0.86rem; color: var(--muted); line-height: 1.6; cursor: pointer; }
+    .privacy-agree label a { color: var(--violet); text-decoration: underline; }
     .btn-submit { width: 100%; background: var(--grad); color: #fff; border: none; padding: 16px; border-radius: 12px; font-size: 1rem; font-weight: 700; cursor: pointer; font-family: inherit; transition: filter .2s, transform .12s; }
     .btn-submit:hover { filter: brightness(1.08); transform: translateY(-1px); }
     .submit-sub { text-align: center; font-size: 0.78rem; color: var(--muted); margin-top: 13px; }
@@ -404,17 +408,17 @@
 <header class="hero"> 
   <div class="wrap hero-grid">
     <div>
-      <span class="hero-badge"><span class="dot"></span>예비창업자 · 소상공인 전문 컨설팅</span>
-      <h1>'26년 약 70개<br />최종합격!!</h1>
+      <span class="hero-badge"><span class="dot"></span>정부지원사업 서포터즈</span>
+      <h1>2026년 약 70개<br />최종합격!!</h1>
       <p class="hero-asterisk">*서류 포함 200개 이상 합격</p>
-      <p class="hero-second">지금까지 500개 이상 최종합격!! &nbsp;→&nbsp; <em class="grad-em">이제는 당신 차례입니다.</em></p>
-      <p class="hero-sub">정부지원사업, 혼자 찾지 마세요. 예비창업자·소상공인에게 딱 맞는 지원사업만 골라 선정까지 함께합니다.</p>
+      <p class="hero-second">지금까지 1,000개 이상 최종합격!! &nbsp;→&nbsp; <em class="grad-em">이제는 당신 차례입니다.</em></p>
+      <p class="hero-sub">정부지원사업, 혼자 고민 마세요. 합격 까지 대표님과 함께합니다.</p>
       <div class="hero-btns">
         <button class="btn-lg btn-hero-main" onclick="scrollToForm()">무료 상담 신청하기 →</button>
       </div>
       <div class="hero-trust">
         <span class="trust-item"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M20 6 9 17l-5-5" stroke="#FF5FA8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>사업자 없어도 신청 가능</span>
-        <span class="trust-item"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M20 6 9 17l-5-5" stroke="#FF5FA8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>상담 완전 무료</span>
+        <span class="trust-item"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M20 6 9 17l-5-5" stroke="#FF5FA8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>상담 무료</span>
         <span class="trust-item"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M20 6 9 17l-5-5" stroke="#FF5FA8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>1:1 전담 컨설턴트</span>
       </div>
     </div>
@@ -425,9 +429,9 @@
 <!-- ── STATS STRIP ── -->
 <div class="stats-strip">
   <div class="wrap stats-inner">
-    <div class="stat-cell"><div class="stat-num data">650<span class="u">+</span></div><div class="stat-label">누적 상담 건수</div></div>
-    <div class="stat-cell"><div class="stat-num data">74<span class="u">%</span></div><div class="stat-label">지원사업 선정률</div></div>
-    <div class="stat-cell"><div class="stat-num data">32<span class="u">억+</span></div><div class="stat-label">고객 수혜 총액</div></div>
+    <div class="stat-cell"><div class="stat-num data">6,500<span class="u">+</span></div><div class="stat-label">누적 상담 건수</div></div>
+    <div class="stat-cell"><div class="stat-num data">70<span class="u">%</span></div><div class="stat-label">지원사업 선정률</div></div>
+    <div class="stat-cell"><div class="stat-num data">300<span class="u">억+</span></div><div class="stat-label">고객 수혜 총액</div></div>
     <div class="stat-cell"><div class="stat-num data">4.9<span class="u">★</span></div><div class="stat-label">고객 만족도</div></div>
   </div>
 </div>
@@ -437,7 +441,7 @@
   <div class="wrap">
     <span class="eyebrow">이런 고민 있으신가요?</span>
     <h2 class="h-sec">정부지원사업,<br />알아도 어렵고 몰라도 손해</h2>
-    <p class="sub-sec">매년 수조 원의 정부지원금이 집행되지만, 정보가 없어 그냥 지나치는 분들이 대부분입니다.</p>
+    <p class="sub-sec">매년 수조 원의 정부지원금이 집행되지만, 몰라서 그냥 지나치는 분들이 대부분입니다.</p>
     <div class="pain-grid">
       <div class="pain-card reveal"><div class="pain-q grad-text">Q.</div><h3>"어떤 지원이 있는지 도무지 모르겠어요"</h3><p>창업진흥원, 중기부, 소상공인진흥공단… 기관도 많고 사업도 너무 많습니다.</p></div>
       <div class="pain-card reveal"><div class="pain-q grad-text">Q.</div><h3>"서류 준비가 너무 복잡해요"</h3><p>사업계획서부터 각종 증빙까지, 무엇을 어떻게 준비해야 하는지 막막합니다.</p></div>
@@ -455,18 +459,18 @@
     <div class="testi-grid">
       <div class="testi-card reveal">
         <span class="testi-type t-startup">예비창업자</span>
-        <blockquote>직장 다니면서 창업 준비 중이었는데, 사업자도 없는 저도 신청할 수 있는 지원사업이 있다고 해서 반신반의했어요. 컨설턴트분이 사업계획서 방향부터 잡아주셨고, 결국 예비창업패키지에 선정됐습니다. 8,500만원 받았어요.</blockquote>
-        <div class="testi-meta"><div class="testi-info"><div class="name">이○○ (30대, 서울)</div><div class="role">IT 서비스 예비창업자 → 선정</div></div><div class="testi-result"><div class="amount data">8,500만원</div><div class="rlabel">예비창업패키지 수혜</div></div></div>
+        <blockquote>직장 다니면서 창업 준비 중이었는데, 저도 신청할 수 있는 지원사업이 있다고 해서 반신반의했어요. 사업계획서 방향부터 잡아주셨고, 결국 창업중심대에 선정되었고 6,000만원 받았어요.</blockquote>
+        <div class="testi-meta"><div class="testi-info"><div class="name">이○○ (20대, 서울)</div><div class="role">IT 서비스 예비창업자 → 선정</div></div><div class="testi-result"><div class="amount data">6,000만원</div><div class="rlabel">창업중심대학 수혜</div></div></div>
       </div>
       <div class="testi-card reveal">
         <span class="testi-type t-small">소상공인</span>
-        <blockquote>카페 운영 3년 차인데 항상 자금이 빠듯했어요. 여기서 소상공인 정책자금 안내받고 신청했더니 저금리로 5,000만원 나왔습니다. 이자가 시중은행의 절반도 안 되더라고요. 진작에 알았으면 좋았을 것 같아요.</blockquote>
-        <div class="testi-meta"><div class="testi-info"><div class="name">박○○ (40대, 부산)</div><div class="role">카페 운영 · 정책자금 연계</div></div><div class="testi-result"><div class="amount data">5,000만원</div><div class="rlabel">정책자금 저금리 대출</div></div></div>
+        <blockquote>폐업 위기 엿는데, 여기서 소상공인 정부지원사업으로 무상 2,000만원 나왔습니다. 마케팅에 지원금을 활용해서 매출이 3배 이상 올랐어요.</blockquote>
+        <div class="testi-meta"><div class="testi-info"><div class="name">박○○ (30대, 부산)</div><div class="role">소상공인 지원금</div></div><div class="testi-result"><div class="amount data">2,000만원</div><div class="rlabel">소상공인 무상지원금</div></div></div>
       </div>
       <div class="testi-card reveal">
-        <span class="testi-type t-startup">예비창업자</span>
-        <blockquote>학생인데 창업하고 싶었어요. 돈도 없고 경험도 없어서 막막했는데, 청년창업사관학교를 추천해주셔서 도전했고 선정됐습니다. 창업 공간에 1억까지 지원받았어요. 컨설팅 없었으면 혼자 못 했을 것 같아요.</blockquote>
-        <div class="testi-meta"><div class="testi-info"><div class="name">김○○ (20대, 대전)</div><div class="role">대학생 예비창업자 → 사관학교 선정</div></div><div class="testi-result"><div class="amount data">1억원</div><div class="rlabel">청년창업사관학교 수혜</div></div></div>
+        <span class="testi-type t-startup">기존 사업자</span>
+        <blockquote>창업자만 지원금이 있는 줄 알았는데 R&D 지원금으로 2억을 받아서 제품 개발 및 시장 진출에 많은 도움이 되었어요.</blockquote>
+        <div class="testi-meta"><div class="testi-info"><div class="name">김○○ (50대, 대전)</div><div class="role">개인/법인 사업자 → 디딤돌(R&D) 선정</div></div><div class="testi-result"><div class="amount data">2억원</div><div class="rlabel">디딤돌 수혜</div></div></div>
       </div>
     </div>
 
@@ -537,7 +541,7 @@
 </section>
 
 <!-- ── PROCESS ── -->
-<section id="process" class="section paper">
+<section id="process" class="section dark">
   <div class="wrap">
     <span class="eyebrow">이용 과정</span>
     <h2 class="h-sec">7단계로 완성되는<br />정부지원 성공 여정</h2>
@@ -555,7 +559,7 @@
 </section>
 
 <!-- ── FORM ── -->
-<section id="consult" class="section paper">
+<section id="consult" class="section" style="padding-top:56px;">
   <div class="wrap form-wrap">
     <div class="form-head">
       <span class="eyebrow">무료 상담 신청</span>
@@ -566,31 +570,41 @@
     <div class="form-body" style="border-radius:16px;">
       <form id="form-startup" onsubmit="submitForm(event, '예비창업자')">
         <div class="form-row">
+          <div class="form-group"><label for="startup-companyName">기업명 <span class="req">*</span></label><input id="startup-companyName" type="text" name="companyName" placeholder="예) 제로백스쿨" required /></div>
           <div class="form-group"><label for="startup-name">이름 <span class="req">*</span></label><input id="startup-name" type="text" name="name" placeholder="홍길동" required /></div>
-          <div class="form-group"><label for="startup-phone">연락처 <span class="req">*</span></label><input id="startup-phone" type="tel" name="phone" placeholder="010-0000-0000" required /></div>
         </div>
         <div class="form-row">
+          <div class="form-group"><label for="startup-phone">연락처 <span class="req">*</span></label><input id="startup-phone" type="tel" name="phone" placeholder="010-0000-0000" required /></div>
           <div class="form-group"><label for="startup-currentStatus">현재 상태 <span class="req">*</span></label>
-            <select id="startup-currentStatus" name="currentStatus" required><option value="">선택해주세요</option><option>직장인 (창업 준비 중)</option><option>학생</option><option>구직 중</option><option>프리랜서</option><option>기타</option></select>
+            <select id="startup-currentStatus" name="currentStatus" required><option value="">선택해주세요</option><option>사업자</option><option>직장인 (창업 준비 중)</option><option>학생</option><option>구직 중</option><option>프리랜서</option><option>기타</option></select>
           </div>
+        </div>
+        <div class="form-row">
           <div class="form-group"><label for="startup-businessType">창업 예정 업종 <span class="req">*</span></label>
             <select id="startup-businessType" name="businessType" required><option value="">선택해주세요</option><option>IT·소프트웨어·앱</option><option>제조·하드웨어</option><option>유통·이커머스</option><option>식품·외식</option><option>뷰티·패션</option><option>교육·콘텐츠</option><option>사회적기업·소셜벤처</option><option>기타 서비스업</option></select>
           </div>
-        </div>
-        <div class="form-group">
-          <label>관심 지원사업 <span class="req">*</span> (복수 선택 가능)</label>
-          <div class="check-group">
-            <label class="check-item"><input type="checkbox" name="interests" value="예비창업패키지" /><span>예비창업패키지 <span class="check-sub">· 최대 1억 · 사업자 없어도 가능</span></span></label>
-            <label class="check-item"><input type="checkbox" name="interests" value="청년창업사관학교" /><span>청년창업사관학교 <span class="check-sub">· 최대 1억 · 만 39세 이하</span></span></label>
-            <label class="check-item"><input type="checkbox" name="interests" value="초기창업패키지" /><span>초기창업패키지 <span class="check-sub">· 최대 1억 · 창업 3년 이내</span></span></label>
-            <label class="check-item"><input type="checkbox" name="interests" value="여성창업패키지" /><span>여성창업패키지 <span class="check-sub">· 최대 5,000만원 · 여성 창업자</span></span></label>
-            <label class="check-item"><input type="checkbox" name="interests" value="전문가 추천 요청" /><span>어떤 게 맞는지 모르겠어요 → 전문가 추천 받기</span></label>
+          <div class="form-group"><label for="startup-consultType">상담 요청 항목 <span class="req">*</span></label>
+            <select id="startup-consultType" name="consultType" required>
+              <option value="">선택해주세요</option>
+              <option>10억 이하 자금 로드맵</option>
+              <option>정부지원사업·R&amp;D 매칭</option>
+              <option>사업계획서 작성 견적</option>
+              <option>정책자금·투자유치 검토</option>
+              <option>자료 검토 후 상담 필요</option>
+            </select>
           </div>
         </div>
         <div class="form-group"><label for="startup-message">창업 아이디어 또는 문의 내용</label><textarea id="startup-message" name="message" placeholder="어떤 사업을 준비 중이신지, 또는 궁금한 점을 자유롭게 적어주세요. (선택사항)"></textarea></div>
         <div class="form-notice">ℹ️ 사업자등록증이 없어도 괜찮습니다. 예비창업자 상태에서 신청 가능한 지원사업을 안내드립니다.</div>
+        <div class="privacy-agree">
+          <input type="checkbox" id="privacy-check" required />
+          <label for="privacy-check">
+            <a href="/privacy.html" target="_blank" rel="noopener">개인정보처리방침</a>에 동의합니다.
+            수집된 정보는 상담 연락 목적으로만 사용되며 제3자에게 제공되지 않습니다. <span class="req">*</span>
+          </label>
+        </div>
         <button type="submit" class="btn-submit" id="btn-startup">무료 상담 신청하기 →</button>
-        <p class="submit-sub">개인정보는 상담 목적으로만 사용되며, 제3자에게 제공되지 않습니다.</p>
+        <p class="submit-sub">접수 후 24시간 내 전담 컨설턴트가 연락드립니다.</p>
       </form>
 
     </div>

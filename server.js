@@ -168,7 +168,8 @@ app.post(
     try {
       const {
         type, name, phone, currentStatus, businessType,
-        businessName, industry, operationPeriod, employeeCount, interests, message,
+        businessName, industry, operationPeriod, employeeCount,
+        interests, message, companyName, consultType,
       } = req.body;
 
       const interestsArr = Array.isArray(interests) ? interests.slice(0, 10)
@@ -177,14 +178,16 @@ app.post(
       const { rows } = await pool.query(
         `INSERT INTO submissions
            (type, name, phone, current_status, business_type,
-            business_name, industry, operation_period, employee_count, interests, message)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+            business_name, industry, operation_period, employee_count,
+            interests, message, company_name, consult_type)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
          RETURNING id`,
         [type, name, phone,
          currentStatus || null, businessType || null,
          businessName || null, industry || null,
          operationPeriod || null, employeeCount || null,
-         interestsArr, message || null],
+         interestsArr, message || null,
+         companyName || null, consultType || null],
       );
 
       res.json({ success: true, id: rows[0].id });
@@ -773,7 +776,7 @@ app.get('/api/admin/submissions', requireAdmin, async (req, res) => {
     if (status) { params.push(status); conditions.push(`status = $${params.length}`); }
     if (q) {
       params.push(`%${q}%`);
-      conditions.push(`(name ILIKE $${params.length} OR phone ILIKE $${params.length} OR business_name ILIKE $${params.length})`);
+      conditions.push(`(name ILIKE $${params.length} OR phone ILIKE $${params.length} OR business_name ILIKE $${params.length} OR company_name ILIKE $${params.length})`);
     }
 
     const where = conditions.join(' AND ');
