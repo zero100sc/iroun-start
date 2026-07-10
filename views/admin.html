@@ -101,6 +101,8 @@
       font-family: inherit; transition: all .15s;
     }
     .logout-btn:hover { background: rgba(239,68,68,0.15); color: #fca5a5; }
+    .nav-big { font-size: 1.02rem; font-weight: 700; color: rgba(255,255,255,0.88); }
+    .nav-sub { padding-left: 28px; font-size: 0.83rem; }
 
     /* ── MAIN ── */
     .main { margin-left: 220px; flex: 1; min-height: 100vh; }
@@ -321,15 +323,12 @@
     <div class="sub">어드민 패널</div>
   </div>
   <nav class="sidebar-nav">
-    <a class="nav-item active" id="nav-submissions" role="button" tabindex="0" onclick="showView('submissions')">📋 상담 신청 목록</a>
-    <a class="nav-item" id="nav-consulting" role="button" tabindex="0" onclick="showView('consulting')">🎓 전문가 컨설팅 신청</a>
-    <a class="nav-item" id="nav-members" role="button" tabindex="0" onclick="showView('members')">👥 가입 회원</a>
-    <div class="nav-divider">상담 빠른 필터</div>
-    <a class="nav-item" href="/admin?type=예비창업자">🚀 예비창업자</a>
-    <a class="nav-item" href="/admin?type=소상공인">🏪 소상공인</a>
-    <a class="nav-item" href="/admin?status=pending">⏳ 대기중</a>
-    <a class="nav-item" href="/admin?status=contacted">💬 연락함</a>
-    <a class="nav-item" href="/admin?status=completed">✅ 완료</a>
+    <a class="nav-item nav-big" id="nav-members" role="button" tabindex="0" onclick="showView('members')">👥 가입 회원</a>
+    <a class="nav-item nav-big" id="nav-submissions" role="button" tabindex="0" onclick="showSection('all')">📋 상담 신청 목록</a>
+    <a class="nav-item nav-sub active" id="nav-all" role="button" tabindex="0" onclick="showSection('all')">🎓 상담 신청자</a>
+    <a class="nav-item nav-sub" id="nav-pending" role="button" tabindex="0" onclick="showSection('pending')">⏳ 대기중</a>
+    <a class="nav-item nav-sub" id="nav-contacted" role="button" tabindex="0" onclick="showSection('contacted')">💬 연락함</a>
+    <a class="nav-item nav-sub" id="nav-completed" role="button" tabindex="0" onclick="showSection('completed')">✅ 완료</a>
     <div class="nav-divider">바로가기</div>
     <a class="nav-item" href="/" target="_blank">🌐 랜딩페이지</a>
   </nav>
@@ -413,50 +412,6 @@
 
     </div><!-- /view-submissions -->
 
-    <!-- ══════ VIEW: 전문가 컨설팅 신청 ══════ -->
-    <div id="view-consulting" style="display:none">
-
-      <!-- STATS -->
-      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
-        <div class="stat-card c-total">   <div class="label">전체 신청</div><div class="num" id="cs-total">-</div><div class="sub">누적</div></div>
-        <div class="stat-card c-pending"> <div class="label">대기중</div><div class="num" id="cs-pending">-</div><div class="sub">연락 필요</div></div>
-        <div class="stat-card c-contact"> <div class="label">연락함</div><div class="num" id="cs-contacted">-</div></div>
-        <div class="stat-card c-complete"><div class="label">완료</div><div class="num" id="cs-completed">-</div></div>
-      </div>
-
-      <!-- FILTER -->
-      <div class="filter-bar">
-        <select id="cf-status" onchange="loadConsulting()">
-          <option value="">전체 상태</option>
-          <option value="pending">대기중</option>
-          <option value="contacted">연락함</option>
-          <option value="completed">완료</option>
-        </select>
-        <button class="reset-btn" onclick="document.getElementById('cf-status').value='';loadConsulting()">초기화</button>
-      </div>
-
-      <!-- TABLE -->
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>신청자</th>
-              <th>연락처</th>
-              <th>분야</th>
-              <th>요청 내용</th>
-              <th>접수일</th>
-              <th>상태</th>
-            </tr>
-          </thead>
-          <tbody id="consulting-body">
-            <tr><td class="no-data" colspan="7">데이터 로딩 중...</td></tr>
-          </tbody>
-        </table>
-      </div>
-
-    </div><!-- /view-consulting -->
-
     <!-- ══════ VIEW: 가입 회원 ══════ -->
     <div id="view-members" style="display:none">
 
@@ -513,10 +468,7 @@
   let currentPage = 1;
   let currentData = [];
 
-  // URL 파라미터로 초기 필터 설정
   const urlParams = new URLSearchParams(location.search);
-  if (urlParams.get('type'))   document.getElementById('f-type').value   = urlParams.get('type');
-  if (urlParams.get('status')) document.getElementById('f-status').value = urlParams.get('status');
 
   // ── 통계 로드 ──
   async function loadStats() {
@@ -703,152 +655,34 @@
   });
 
   // ════════════════════════════════════════════
-  //  뷰 전환 (상담 신청 ⇄ 전문가 컨설팅)
+  //  뷰 전환
   // ════════════════════════════════════════════
-  let consultingLoaded = false;
-  let consultingData = [];
+  const SUB_NAV_IDS = ['nav-all', 'nav-pending', 'nav-contacted', 'nav-completed'];
 
   function showView(view) {
-    // ── 가입 회원 뷰 분기 (신규 — 기존 이진 토글 로직 앞에서 선처리) ──
-    if (view === 'members') {
-      document.getElementById('view-submissions').style.display = 'none';
-      document.getElementById('view-consulting').style.display  = 'none';
-      document.getElementById('view-members').style.display     = '';
-      document.getElementById('nav-submissions').classList.remove('active');
-      document.getElementById('nav-consulting').classList.remove('active');
-      document.getElementById('nav-members').classList.add('active');
-      document.getElementById('topbar-title').textContent = '가입 회원 관리';
-      document.getElementById('export-btn').style.display = 'none';
-      if (!membersLoaded) loadMembers();
-      return;
-    }
-    const isSub = view === 'submissions';
-    document.getElementById('view-submissions').style.display = isSub ? '' : 'none';
-    document.getElementById('view-consulting').style.display  = isSub ? 'none' : '';
-    document.getElementById('nav-submissions').classList.toggle('active', isSub);
-    document.getElementById('nav-consulting').classList.toggle('active', !isSub);
-    document.getElementById('topbar-title').textContent = isSub ? '상담 신청 관리' : '전문가 컨설팅 신청 관리';
-    document.getElementById('export-btn').style.display = isSub ? '' : 'none';
-    if (!isSub && !consultingLoaded) loadConsulting();
-    // ── 회원 뷰는 이 경로(상담/컨설팅)에서 항상 숨김 (신규 분기 보정) ──
-    document.getElementById('view-members').style.display = 'none';
-    document.getElementById('nav-members').classList.remove('active');
-  }
-
-  // ── 컨설팅 목록 로드 ──
-  async function loadConsulting() {
-    consultingLoaded = true;
-    const status = document.getElementById('cf-status').value;
-    const params = new URLSearchParams();
-    if (status) params.set('status', status);
-
-    document.getElementById('consulting-body').innerHTML =
-      '<tr><td class="no-data" colspan="7">로딩 중...</td></tr>';
-
-    try {
-      const res  = await fetch('/api/admin/consulting?' + params);
-      const json = await res.json();
-      consultingData = json.data || [];
-      renderConsulting();
-      renderConsultingStats();
-    } catch (e) {
-      document.getElementById('consulting-body').innerHTML =
-        '<tr><td class="no-data" colspan="7">데이터 로드 실패</td></tr>';
-    }
-  }
-
-  function renderConsultingStats() {
-    // 필터된 목록이 아닌 전체 카운트를 위해 항상 무필터 통계 별도 조회
-    fetch('/api/admin/consulting').then(r => r.json()).then(json => {
-      const all = json.data || [];
-      document.getElementById('cs-total').textContent     = all.length;
-      document.getElementById('cs-pending').textContent   = all.filter(r => r.status === 'pending').length;
-      document.getElementById('cs-contacted').textContent = all.filter(r => r.status === 'contacted').length;
-      document.getElementById('cs-completed').textContent = all.filter(r => r.status === 'completed').length;
-    }).catch(() => {});
-  }
-
-  function renderConsulting() {
-    const tbody = document.getElementById('consulting-body');
-    if (!consultingData.length) {
-      tbody.innerHTML = '<tr><td class="no-data" colspan="7">컨설팅 신청 내역이 없습니다.</td></tr>';
-      return;
-    }
-    tbody.innerHTML = consultingData.map(r => {
-      const statusClass = `status-${r.status}`;
-      const date    = new Date(r.created_at).toLocaleString('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
-      const contact = r.user_phone || r.user_email || '-';
-      const area    = r.area || '-';
-      return `
-        <tr onclick="openConsultingModal(${r.id})" tabindex="0" role="button">
-          <td style="color:var(--muted);font-size:.78rem">#${r.id}</td>
-          <td style="font-weight:600">${esc(r.user_name || '(탈퇴 회원)')}</td>
-          <td>${esc(contact)}</td>
-          <td><span class="area-badge">${esc(area)}</span></td>
-          <td><span class="msg-clip">${esc(r.message || '-')}</span></td>
-          <td style="color:var(--muted);font-size:.78rem">${date}</td>
-          <td onclick="event.stopPropagation()">
-            <select class="status-sel ${statusClass}" onchange="updateConsultingStatus(${r.id}, this)">
-              <option value="pending"   ${r.status==='pending'  ?'selected':''}>대기중</option>
-              <option value="contacted" ${r.status==='contacted'?'selected':''}>연락함</option>
-              <option value="completed" ${r.status==='completed'?'selected':''}>완료</option>
-            </select>
-          </td>
-        </tr>`;
-    }).join('');
-  }
-
-  async function updateConsultingStatus(id, sel) {
-    const status = sel.value;
-    sel.className = `status-sel status-${status}`;
-    await fetch(`/api/admin/consulting/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status }),
+    const isMembers = view === 'members';
+    document.getElementById('view-submissions').style.display = isMembers ? 'none' : '';
+    document.getElementById('view-members').style.display     = isMembers ? ''     : 'none';
+    ['nav-members', 'nav-submissions', ...SUB_NAV_IDS].forEach(id => {
+      document.getElementById(id)?.classList.remove('active');
     });
-    const item = consultingData.find(x => x.id === id);
-    if (item) item.status = status;
-    renderConsultingStats();
+    document.getElementById('topbar-title').textContent = isMembers ? '가입 회원 관리' : '상담 신청 관리';
+    document.getElementById('export-btn').style.display = isMembers ? 'none' : '';
+    if (isMembers) {
+      document.getElementById('nav-members').classList.add('active');
+      if (!membersLoaded) loadMembers();
+    }
   }
 
-  // ── 컨설팅 상세 모달 (회원 컨텍스트 스냅샷 포함) ──
-  function openConsultingModal(id) {
-    const r = consultingData.find(x => x.id === id);
-    if (!r) return;
-
-    const area        = r.area || '-';
-    const statusLabel = { pending: '⏳ 대기중', contacted: '💬 연락함', completed: '✅ 완료' }[r.status] || r.status;
-    const ctx     = r.context || {};
-    const profile = ctx.profile || {};
-    const user    = ctx.user || {};
-    const segs    = Array.isArray(profile.segments) ? profile.segments.join(', ') : (profile.segments || '-');
-
-    document.getElementById('modal-title').textContent = `#${r.id} ${r.user_name || ''} 컨설팅 신청`;
-    document.getElementById('modal-body').innerHTML = `
-      <div class="detail-grid">
-        <div class="detail-item"><div class="dl">신청자</div><div class="dv">${esc(r.user_name || user.name || '(탈퇴 회원)')}</div></div>
-        <div class="detail-item"><div class="dl">상태</div><div class="dv">${statusLabel}</div></div>
-        <div class="detail-item"><div class="dl">이메일</div><div class="dv">${esc(r.user_email || user.email || '-')}</div></div>
-        <div class="detail-item"><div class="dl">연락처</div><div class="dv">${r.user_phone ? `<a href="tel:${esc(r.user_phone)}">${esc(r.user_phone)}</a>` : '-'}</div></div>
-        <div class="detail-item"><div class="dl">컨설팅 분야</div><div class="dv">${esc(area)}</div></div>
-        <div class="detail-item"><div class="dl">접수일</div><div class="dv">${new Date(r.created_at).toLocaleString('ko-KR')}</div></div>
-      </div>
-      <div class="detail-full">
-        <div class="dl">요청 내용</div>
-        <div class="dv">${r.message ? esc(r.message) : '<span style="color:var(--muted)">내용 없음</span>'}</div>
-      </div>
-      <div class="detail-full">
-        <div class="dl">회원 컨텍스트 (신청 시점 스냅샷)</div>
-        <div class="ctx-box">
-          <div><span class="k">상호명</span>${esc(profile.biz_name || '-')}</div>
-          <div><span class="k">고객 세그먼트</span>${esc(segs)}</div>
-          <div><span class="k">업종코드</span>${esc(profile.industry_code || '-')}</div>
-          <div><span class="k">지역</span>${esc(profile.region_sido || '-')}</div>
-          ${r.application_id ? `<div><span class="k">연계 지원건 ID</span>#${esc(r.application_id)}</div>` : ''}
-        </div>
-      </div>`;
-
-    document.getElementById('modal').classList.add('open');
+  function showSection(status) {
+    showView('submissions');
+    document.getElementById('nav-submissions').classList.add('active');
+    const navMap = { all: 'nav-all', pending: 'nav-pending', contacted: 'nav-contacted', completed: 'nav-completed' };
+    document.getElementById(navMap[status] || 'nav-all')?.classList.add('active');
+    document.getElementById('f-type').value   = '';
+    document.getElementById('f-status').value = status === 'all' ? '' : status;
+    document.getElementById('f-q').value      = '';
+    loadData(1);
   }
 
   // ════════════════════════════════════════════
@@ -1013,7 +847,7 @@
 
   // 초기 로드
   loadStats();
-  loadData(1);
+  showSection(urlParams.get('status') || 'all');
 </script>
 
 <script>
