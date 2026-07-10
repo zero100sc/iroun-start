@@ -670,10 +670,12 @@
     const interests = [...form.querySelectorAll('input[name="interests"]:checked')].map(cb => cb.value);
     const payload = {
       type, name: fd.get('name'), phone: fd.get('phone'),
+      companyName: fd.get('companyName') || null,
       currentStatus: fd.get('currentStatus') || null, businessType: fd.get('businessType') || null,
       businessName: fd.get('businessName') || null, industry: fd.get('industry') || null,
       operationPeriod: fd.get('operationPeriod') || null, employeeCount: fd.get('employeeCount') || null,
       interests, message: fd.get('message') || null,
+      consultType: fd.get('consultType') || null,
     };
     btn.disabled = true; btn.textContent = '신청 중...';
     try {
