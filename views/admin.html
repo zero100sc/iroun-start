@@ -608,7 +608,7 @@
         <div class="detail-item" style="grid-column:1/-1"><div class="dl">접수일</div><div class="dv">${new Date(r.created_at).toLocaleString('ko-KR')}</div></div>
       </div>
       ${r.interests?.length ? `<div class="detail-full"><div class="dl">관심 지원사업</div><div class="dv">${interestList}</div></div>` : ''}
-      ${r.message ? `<div class="detail-full"><div class="dl">창업 아이디어 또는 문의 내용</div><div class="dv">${esc(r.message)}</div></div>` : ''}
+      ${r.message ? `<div class="detail-full"><div class="dl">창업 아이디어 또는 문의 내용</div><div class="dv" style="white-space:pre-wrap">${esc(r.message)}</div></div>` : ''}
       <div class="detail-full">
         <div class="dl">어드민 메모</div>
         <textarea class="memo-area" id="memo-input" placeholder="상담 내용, 진행 상황 등 메모를 입력하세요...">${esc(r.memo)}</textarea>
