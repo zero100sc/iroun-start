@@ -769,7 +769,9 @@ app.get('/auth/kakao/callback', authLimiter, async (req, res) => {
 // ═══════════════════════════════════════════════════════
 //  워크스페이스 (회원 영역 진입점)
 // ═══════════════════════════════════════════════════════
-app.get('/app', (req, res) => res.sendFile(path.join(__dirname, 'public', 'app.html')));
+app.get('/app',     (req, res) => res.sendFile(path.join(__dirname, 'public', 'app.html')));
+app.get('/terms',   (req, res) => res.sendFile(path.join(__dirname, 'public', 'terms.html')));
+app.get('/privacy', (req, res) => res.sendFile(path.join(__dirname, 'public', 'privacy.html')));
 
 // ═══════════════════════════════════════════════════════
 //  어드민 인증
