@@ -395,8 +395,8 @@
             <th>기업명</th>
             <th>이름</th>
             <th>연락처</th>
-            <th>업종 / 현황</th>
-            <th>관심 지원사업</th>
+            <th>현재 상태</th>
+            <th>상담 요청 항목</th>
             <th>접수일</th>
             <th>상태</th>
           </tr>
@@ -519,12 +519,9 @@
       return;
     }
     tbody.innerHTML = json.data.map(r => {
-      const typeClass = r.type === '예비창업자' ? 'type-startup' : 'type-small';
-      const industry  = r.business_type || r.industry || r.current_status || '-';
-      const interests = (r.interests || []).slice(0, 2).map(i => {
-        const short = i.replace(/\(.*?\)/g,'').replace('어떤 게 맞는지 모르겠어요','추천 요청').trim().slice(0, 15);
-        return `<span class="interest-tag">${esc(short)}</span>`;
-      }).join('');
+      const typeClass     = r.type === '예비창업자' ? 'type-startup' : 'type-small';
+      const currentStatus = r.current_status || '-';
+      const consultType   = r.consult_type || '-';
       const statusClass = `status-${r.status}`;
       const statusLabel = { pending: '대기중', contacted: '연락함', completed: '완료' }[r.status] || r.status;
       const date = new Date(r.created_at).toLocaleString('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
@@ -535,8 +532,8 @@
           <td style="font-weight:600">${esc(r.company_name || '-')}</td>
           <td style="font-weight:600">${esc(r.name)}</td>
           <td>${esc(r.phone)}</td>
-          <td style="color:var(--muted);font-size:.82rem">${esc(r.consult_type || industry)}</td>
-          <td>${interests || '<span style="color:var(--muted);font-size:.78rem">-</span>'}</td>
+          <td style="color:var(--muted);font-size:.82rem">${esc(currentStatus)}</td>
+          <td style="color:var(--muted);font-size:.82rem">${esc(consultType)}</td>
           <td style="color:var(--muted);font-size:.78rem">${date}</td>
           <td onclick="event.stopPropagation()">
             <select class="status-sel ${statusClass}" onchange="updateStatus(${r.id}, this)">
@@ -611,7 +608,7 @@
         <div class="detail-item" style="grid-column:1/-1"><div class="dl">접수일</div><div class="dv">${new Date(r.created_at).toLocaleString('ko-KR')}</div></div>
       </div>
       ${r.interests?.length ? `<div class="detail-full"><div class="dl">관심 지원사업</div><div class="dv">${interestList}</div></div>` : ''}
-      ${r.message ? `<div class="detail-full"><div class="dl">문의 내용</div><div class="dv">${esc(r.message)}</div></div>` : ''}
+      ${r.message ? `<div class="detail-full"><div class="dl">창업 아이디어 또는 문의 내용</div><div class="dv">${esc(r.message)}</div></div>` : ''}
       <div class="detail-full">
         <div class="dl">어드민 메모</div>
         <textarea class="memo-area" id="memo-input" placeholder="상담 내용, 진행 상황 등 메모를 입력하세요...">${esc(r.memo)}</textarea>
