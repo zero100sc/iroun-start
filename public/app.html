@@ -120,6 +120,11 @@
     .match-card .ev{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px;}
     .match-card .ev span{font-size:0.74rem;background:#f1eef7;color:var(--violet);padding:3px 9px;border-radius:999px;}
     .hidden{display:none;}
+
+    .btn-kakao{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:13px 22px;border-radius:11px;font-size:0.95rem;font-weight:700;font-family:inherit;cursor:pointer;background:#FEE500;color:#1B1726;border:none;text-decoration:none;transition:filter .2s,transform .1s;margin-bottom:16px;}
+    .btn-kakao:hover{filter:brightness(0.95);transform:translateY(-1px);}
+    .auth-sep{display:flex;align-items:center;gap:12px;margin-bottom:20px;color:var(--muted);font-size:0.82rem;font-weight:500;}
+    .auth-sep::before,.auth-sep::after{content:'';flex:1;height:1px;background:var(--line);}
   </style>
 </head>
 <body>
@@ -151,6 +156,13 @@
           <div class="eyebrow">내 워크스페이스</div>
           <h1>제로백스쿨 시작하기</h1>
           <p class="sub">한 번 입력한 정보로 매칭 · 사업계획서 · 발표자료까지 이어집니다.</p>
+
+          <!-- 카카오 로그인 -->
+          <a href="/auth/kakao" class="btn-kakao">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path fill="#1B1726" d="M10 2C5.582 2 2 4.896 2 8.45c0 2.267 1.508 4.258 3.78 5.38-.166.618-.603 2.238-.69 2.585-.108.43.157.424.33.308.137-.092 2.175-1.476 3.056-2.077.5.07 1.014.104 1.524.104 4.418 0 8-2.896 8-6.45C18 4.896 14.418 2 10 2z"/></svg>
+            카카오로 시작하기
+          </a>
+          <div class="auth-sep">또는 이메일로 계속하기</div>
 
           <div class="tabs-auth">
             <button id="tab-login" class="active" onclick="switchAuth('login')">로그인</button>
@@ -688,11 +700,16 @@
       }
     });
     (async function init() {
+      const urlError = new URLSearchParams(location.search).get('error');
       try {
         const r = await fetch('/api/auth/me');
         if (r.ok) { const d = await r.json(); if (d.authenticated) { ME = d.user; renderHeader(); return afterAuth(); } }
       } catch (e) {}
       renderHeader(); show('auth');
+      if (urlError) {
+        const msgs = { kakao_cancel: '카카오 로그인을 취소했습니다.', kakao_token: '카카오 인증에 실패했습니다. 다시 시도해주세요.', kakao_error: '카카오 로그인 중 오류가 발생했습니다.' };
+        setMsg($('#auth-msg'), 'err', msgs[urlError] || '로그인 중 오류가 발생했습니다.');
+      }
     })();
   </script>
 </body>

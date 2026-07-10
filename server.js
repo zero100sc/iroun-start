@@ -16,6 +16,7 @@ const isProd = process.env.NODE_ENV === 'production';
 // 운영(production)에서 누락 시 부팅을 차단한다. 알려진 기본값으로 가동되는 사고 방지.
 const REQUIRED_ENV = ['DATABASE_URL', 'SESSION_SECRET', 'ADMIN_PASSWORD'];
 const missingEnv = REQUIRED_ENV.filter((k) => !process.env[k]);
+const KAKAO_REST_KEY = process.env.KAKAO_REST_API_KEY || '';
 if (missingEnv.length) {
   if (isProd) {
     console.error('❌ 필수 환경변수 누락(운영 부팅 차단):', missingEnv.join(', '));
@@ -247,7 +248,7 @@ app.post(
         `SELECT id, email, name, role, password_hash FROM users WHERE email = $1`, [email],
       );
       const user = rows[0];
-      if (!user || !(await bcrypt.compare(password, user.password_hash))) {
+      if (!user || !user.password_hash || !(await bcrypt.compare(password, user.password_hash))) {
         return res.status(401).json({ success: false, message: '이메일 또는 비밀번호가 올바르지 않습니다.' });
       }
       req.session.userId = user.id;
@@ -704,6 +705,65 @@ app.post('/api/consulting', requireAuth, async (req, res) => {
       [req.session.userId, applicationId || null, (area || '').slice(0, 50), (message || '').slice(0, 2000), JSON.stringify(context)]);
     res.json({ success: true });
   } catch (err) { console.error('consulting error:', err.message); res.status(500).json({ error: '신청에 실패했습니다.' }); }
+});
+
+// ═══════════════════════════════════════════════════════
+//  카카오 OAuth 2.0
+// ═══════════════════════════════════════════════════════
+
+app.get('/auth/kakao', authLimiter, (req, res) => {
+  if (!KAKAO_REST_KEY) return res.status(503).send('카카오 로그인을 사용할 수 없습니다.');
+  const redirectUri = `${req.protocol}://${req.get('host')}/auth/kakao/callback`;
+  const url = `https://kauth.kakao.com/oauth/authorize?client_id=${KAKAO_REST_KEY}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code`;
+  res.redirect(url);
+});
+
+app.get('/auth/kakao/callback', authLimiter, async (req, res) => {
+  const { code, error } = req.query;
+  if (error || !code) return res.redirect('/app?error=kakao_cancel');
+  const redirectUri = `${req.protocol}://${req.get('host')}/auth/kakao/callback`;
+  try {
+    // 인가 코드 → 액세스 토큰 교환
+    const tokenRes = await fetch('https://kauth.kakao.com/oauth/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        grant_type: 'authorization_code',
+        client_id: KAKAO_REST_KEY,
+        redirect_uri: redirectUri,
+        code,
+      }).toString(),
+    });
+    const tokenData = await tokenRes.json();
+    if (!tokenData.access_token) return res.redirect('/app?error=kakao_token');
+
+    // 카카오 사용자 정보 조회
+    const userRes = await fetch('https://kapi.kakao.com/v2/user/me', {
+      headers: { Authorization: `Bearer ${tokenData.access_token}` },
+    });
+    const kakaoUser = await userRes.json();
+
+    const kakaoId = String(kakaoUser.id);
+    const nickname = kakaoUser.kakao_account?.profile?.nickname || '카카오 사용자';
+    const email    = kakaoUser.kakao_account?.email || null;
+
+    // 기존 카카오 계정 조회 또는 신규 가입
+    let { rows } = await pool.query('SELECT id, role FROM users WHERE kakao_id = $1', [kakaoId]);
+    if (!rows[0]) {
+      const ins = await pool.query(
+        `INSERT INTO users (kakao_id, name, email, auth_provider) VALUES ($1, $2, $3, 'kakao') RETURNING id, role`,
+        [kakaoId, nickname, email],
+      );
+      rows = ins.rows;
+    }
+
+    req.session.userId = rows[0].id;
+    req.session.role   = rows[0].role;
+    res.redirect('/app');
+  } catch (err) {
+    console.error('kakao callback error:', err.message);
+    res.redirect('/app?error=kakao_error');
+  }
 });
 
 // ═══════════════════════════════════════════════════════
