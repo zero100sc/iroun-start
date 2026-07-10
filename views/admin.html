@@ -392,6 +392,7 @@
           <tr>
             <th>#</th>
             <th>유형</th>
+            <th>기업명</th>
             <th>이름</th>
             <th>연락처</th>
             <th>업종 / 현황</th>
@@ -401,7 +402,7 @@
           </tr>
         </thead>
         <tbody id="table-body">
-          <tr><td class="no-data" colspan="8">데이터 로딩 중...</td></tr>
+          <tr><td class="no-data" colspan="9">데이터 로딩 중...</td></tr>
         </tbody>
       </table>
       <div class="pagination">
@@ -497,7 +498,7 @@
     if (q)      params.set('q', q);
 
     document.getElementById('table-body').innerHTML =
-      '<tr><td class="no-data" colspan="8">로딩 중...</td></tr>';
+      '<tr><td class="no-data" colspan="9">로딩 중...</td></tr>';
 
     try {
       const res  = await fetch('/api/admin/submissions?' + params);
@@ -507,14 +508,14 @@
       renderPagination(json.total, json.page, json.limit);
     } catch (e) {
       document.getElementById('table-body').innerHTML =
-        '<tr><td class="no-data" colspan="8">데이터 로드 실패</td></tr>';
+        '<tr><td class="no-data" colspan="9">데이터 로드 실패</td></tr>';
     }
   }
 
   function renderTable(json) {
     const tbody = document.getElementById('table-body');
     if (!json.data.length) {
-      tbody.innerHTML = '<tr><td class="no-data" colspan="8">신청 내역이 없습니다.</td></tr>';
+      tbody.innerHTML = '<tr><td class="no-data" colspan="9">신청 내역이 없습니다.</td></tr>';
       return;
     }
     tbody.innerHTML = json.data.map(r => {
@@ -531,9 +532,10 @@
         <tr onclick="openModal(${r.id})" tabindex="0" role="button">
           <td style="color:var(--muted);font-size:.78rem">#${r.id}</td>
           <td><span class="type-badge ${typeClass}">${esc(r.type)}</span></td>
+          <td style="font-weight:600">${esc(r.company_name || '-')}</td>
           <td style="font-weight:600">${esc(r.name)}</td>
           <td>${esc(r.phone)}</td>
-          <td style="color:var(--muted);font-size:.82rem">${esc(industry)}</td>
+          <td style="color:var(--muted);font-size:.82rem">${esc(r.consult_type || industry)}</td>
           <td>${interests || '<span style="color:var(--muted);font-size:.78rem">-</span>'}</td>
           <td style="color:var(--muted);font-size:.78rem">${date}</td>
           <td onclick="event.stopPropagation()">
@@ -596,8 +598,10 @@
       <div class="detail-grid">
         <div class="detail-item"><div class="dl">유형</div><div class="dv">${esc(r.type)}</div></div>
         <div class="detail-item"><div class="dl">상태</div><div class="dv">${statusLabel}</div></div>
+        ${r.company_name ? `<div class="detail-item"><div class="dl">기업명</div><div class="dv">${esc(r.company_name)}</div></div>` : ''}
         <div class="detail-item"><div class="dl">이름</div><div class="dv">${esc(r.name)}</div></div>
         <div class="detail-item"><div class="dl">연락처</div><div class="dv"><a href="tel:${esc(r.phone)}">${esc(r.phone)}</a></div></div>
+        ${r.consult_type ? `<div class="detail-item"><div class="dl">상담 요청 항목</div><div class="dv">${esc(r.consult_type)}</div></div>` : ''}
         ${r.current_status ? `<div class="detail-item"><div class="dl">현재 상태</div><div class="dv">${esc(r.current_status)}</div></div>` : ''}
         ${r.business_type  ? `<div class="detail-item"><div class="dl">창업 예정 업종</div><div class="dv">${esc(r.business_type)}</div></div>` : ''}
         ${r.business_name  ? `<div class="detail-item"><div class="dl">상호명</div><div class="dv">${esc(r.business_name)}</div></div>` : ''}

@@ -160,6 +160,8 @@ app.post(
   body('name').trim().isLength({ min: 1, max: 50 }),
   body('phone').trim().matches(/^[0-9\-+\s()]{7,20}$/),
   body('message').optional({ nullable: true }).isLength({ max: 2000 }),
+  body('companyName').optional({ nullable: true }).trim().isLength({ max: 100 }),
+  body('consultType').optional({ nullable: true }).trim().isLength({ max: 100 }),
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -823,9 +825,10 @@ app.get('/api/admin/export', requireAdmin, async (req, res) => {
   try {
     const { rows } = await pool.query('SELECT * FROM submissions ORDER BY created_at DESC');
 
-    const header = ['ID','유형','이름','연락처','현재상태','예정업종','상호명','업종','사업기간','직원수','관심사업','문의내용','어드민메모','상담상태','접수일'];
+    const header = ['ID','유형','기업명','이름','연락처','상담요청항목','현재상태','예정업종','상호명','업종','사업기간','직원수','관심사업','문의내용','어드민메모','상담상태','접수일'];
     const csvRows = rows.map((r) => [
-      r.id, r.type, r.name, r.phone,
+      r.id, r.type, r.company_name || '', r.name, r.phone,
+      r.consult_type || '',
       r.current_status || '', r.business_type || '',
       r.business_name  || '', r.industry      || '',
       r.operation_period || '', r.employee_count || '',
