@@ -748,12 +748,18 @@ app.get('/auth/kakao/callback', authLimiter, async (req, res) => {
     console.log('kakao user raw:', JSON.stringify(kakaoUser));
 
     const kakaoId = String(kakaoUser.id);
-    const nickname = kakaoUser.kakao_account?.profile?.nickname || '카카오 사용자';
+    const nickname = kakaoUser.kakao_account?.profile?.nickname
+      || kakaoUser.properties?.nickname
+      || '카카오 사용자';
     const email    = kakaoUser.kakao_account?.email || null;
 
     // 기존 회원이면 바로 로그인, 신규면 약관 동의 화면으로
-    const { rows } = await pool.query('SELECT id, role FROM users WHERE kakao_id = $1', [kakaoId]);
+    const { rows } = await pool.query('SELECT id, role, name FROM users WHERE kakao_id = $1', [kakaoId]);
     if (rows[0]) {
+      // 이름이 기본값으로 저장된 기존 회원은 실제 닉네임으로 업데이트
+      if (rows[0].name === '카카오 사용자' && nickname !== '카카오 사용자') {
+        await pool.query('UPDATE users SET name = $1 WHERE id = $2', [nickname, rows[0].id]);
+      }
       req.session.userId = rows[0].id;
       req.session.role   = rows[0].role;
       return res.redirect('/app');
