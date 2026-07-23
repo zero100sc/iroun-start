@@ -735,13 +735,17 @@ app.get('/auth/kakao/callback', authLimiter, async (req, res) => {
       }).toString(),
     });
     const tokenData = await tokenRes.json();
-    if (!tokenData.access_token) return res.redirect('/app?error=kakao_token');
+    if (!tokenData.access_token) {
+      console.error('kakao token error:', JSON.stringify(tokenData));
+      return res.redirect('/app?error=kakao_token');
+    }
 
     // 카카오 사용자 정보 조회
     const userRes = await fetch('https://kapi.kakao.com/v2/user/me', {
       headers: { Authorization: `Bearer ${tokenData.access_token}` },
     });
     const kakaoUser = await userRes.json();
+    console.log('kakao user raw:', JSON.stringify(kakaoUser));
 
     const kakaoId = String(kakaoUser.id);
     const nickname = kakaoUser.kakao_account?.profile?.nickname || '카카오 사용자';
@@ -761,7 +765,7 @@ app.get('/auth/kakao/callback', authLimiter, async (req, res) => {
     req.session.role   = rows[0].role;
     res.redirect('/app');
   } catch (err) {
-    console.error('kakao callback error:', err.message);
+    console.error('kakao callback error:', err.message, err.stack);
     res.redirect('/app?error=kakao_error');
   }
 });
