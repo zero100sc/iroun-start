@@ -711,6 +711,20 @@ app.post('/api/consulting', requireAuth, async (req, res) => {
 //  카카오 OAuth 2.0
 // ═══════════════════════════════════════════════════════
 
+// +82 10-1234-5678 → 010-1234-5678
+function normalizeKakaoPhone(raw) {
+  if (!raw) return null;
+  const digits = raw.replace(/\D/g, '');
+  if (digits.startsWith('82') && digits.length >= 11) {
+    const local = '0' + digits.slice(2);
+    return local.replace(/^(0\d{2})(\d{4})(\d{4})$/, '$1-$2-$3');
+  }
+  if (digits.length === 11 && digits.startsWith('0')) {
+    return digits.replace(/^(0\d{2})(\d{4})(\d{4})$/, '$1-$2-$3');
+  }
+  return raw;
+}
+
 app.get('/auth/kakao', authLimiter, (req, res) => {
   if (!KAKAO_REST_KEY) return res.status(503).send('카카오 로그인을 사용할 수 없습니다.');
   const redirectUri = `${req.protocol}://${req.get('host')}/auth/kakao/callback`;
@@ -748,24 +762,36 @@ app.get('/auth/kakao/callback', authLimiter, async (req, res) => {
     console.log('kakao user raw:', JSON.stringify(kakaoUser));
 
     const kakaoId = String(kakaoUser.id);
-    const nickname = kakaoUser.kakao_account?.profile?.nickname
+    // 실명(이름) 우선 → 닉네임 순서로 취득
+    const name = kakaoUser.kakao_account?.name
+      || kakaoUser.kakao_account?.profile?.nickname
       || kakaoUser.properties?.nickname
       || '카카오 사용자';
-    const email    = kakaoUser.kakao_account?.email || null;
+    const email = kakaoUser.kakao_account?.email || null;
+    const phone = normalizeKakaoPhone(kakaoUser.kakao_account?.phone_number);
 
     // 기존 회원이면 바로 로그인, 신규면 약관 동의 화면으로
-    const { rows } = await pool.query('SELECT id, role, name FROM users WHERE kakao_id = $1', [kakaoId]);
+    const { rows } = await pool.query('SELECT id, role, name, phone FROM users WHERE kakao_id = $1', [kakaoId]);
     if (rows[0]) {
-      // 이름이 기본값으로 저장된 기존 회원은 실제 닉네임으로 업데이트
-      if (rows[0].name === '카카오 사용자' && nickname !== '카카오 사용자') {
-        await pool.query('UPDATE users SET name = $1 WHERE id = $2', [nickname, rows[0].id]);
+      // 기본값으로 저장된 필드는 카카오 최신 정보로 갱신
+      const updates = [];
+      const vals = [];
+      if (rows[0].name === '카카오 사용자' && name !== '카카오 사용자') {
+        updates.push(`name = $${vals.push(name)}`);
+      }
+      if (!rows[0].phone && phone) {
+        updates.push(`phone = $${vals.push(phone)}`);
+      }
+      if (updates.length) {
+        vals.push(rows[0].id);
+        await pool.query(`UPDATE users SET ${updates.join(', ')} WHERE id = $${vals.length}`, vals);
       }
       req.session.userId = rows[0].id;
       req.session.role   = rows[0].role;
       return res.redirect('/app');
     }
 
-    req.session.pendingKakao = { kakaoId, nickname, email };
+    req.session.pendingKakao = { kakaoId, name, email, phone };
     res.redirect('/auth/kakao/terms');
   } catch (err) {
     console.error('kakao callback error:', err.message, err.stack);
@@ -780,8 +806,8 @@ app.get('/auth/kakao/terms', (req, res) => {
 
 app.get('/auth/kakao/pending-info', (req, res) => {
   if (!req.session.pendingKakao) return res.json({});
-  const { nickname, email } = req.session.pendingKakao;
-  res.json({ nickname, email });
+  const { name, email, phone } = req.session.pendingKakao;
+  res.json({ nickname: name, email, phone });
 });
 
 app.post('/auth/kakao/agree', authLimiter, async (req, res) => {
@@ -789,8 +815,8 @@ app.post('/auth/kakao/agree', authLimiter, async (req, res) => {
   if (!pending) return res.status(400).json({ success: false, message: '세션이 만료됐습니다. 다시 시도해주세요.' });
   try {
     const ins = await pool.query(
-      `INSERT INTO users (kakao_id, name, email, auth_provider) VALUES ($1, $2, $3, 'kakao') RETURNING id, role`,
-      [pending.kakaoId, pending.nickname, pending.email],
+      `INSERT INTO users (kakao_id, name, email, phone, auth_provider) VALUES ($1, $2, $3, $4, 'kakao') RETURNING id, role`,
+      [pending.kakaoId, pending.name, pending.email, pending.phone || null],
     );
     delete req.session.pendingKakao;
     req.session.userId = ins.rows[0].id;

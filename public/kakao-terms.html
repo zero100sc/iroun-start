@@ -161,6 +161,7 @@
     <div>
       <div class="profile-name" id="user-name">로딩 중...</div>
       <div class="profile-email" id="user-email"></div>
+      <div class="profile-email" id="user-phone"></div>
     </div>
   </div>
 
@@ -202,6 +203,7 @@
       if (!data.nickname) { location.href = '/app'; return; }
       document.getElementById('user-name').textContent = data.nickname;
       document.getElementById('user-email').textContent = data.email || '';
+      document.getElementById('user-phone').textContent = data.phone || '';
     })
     .catch(() => { location.href = '/app'; });
 
