@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>회원가입 — 제로백스쿨</title>
+  <link rel="icon" href="/logo-zero100-square.png" />
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Pretendard Variable', Pretendard, sans-serif;
+      background: #f5f6fa;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,.08);
+      width: 100%;
+      max-width: 480px;
+      padding: 40px 32px 36px;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 28px;
+    }
+    .logo img { width: 36px; height: 36px; border-radius: 8px; }
+    .logo-text { font-size: 18px; font-weight: 700; color: #1a1a2e; }
+    h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #1a1a2e;
+      margin-bottom: 6px;
+    }
+    .sub {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 28px;
+    }
+    .profile-box {
+      background: #f8f9fc;
+      border-radius: 10px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+    .profile-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #ffe812;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 20px;
+    }
+    .profile-name { font-size: 15px; font-weight: 600; color: #1a1a2e; }
+    .profile-email { font-size: 13px; color: #888; margin-top: 2px; }
+
+    .agree-all {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 16px;
+      background: #f0f4ff;
+      border-radius: 10px;
+      margin-bottom: 16px;
+      cursor: pointer;
+    }
+    .agree-all input { width: 18px; height: 18px; accent-color: #3d52d5; cursor: pointer; }
+    .agree-all span { font-size: 15px; font-weight: 600; color: #1a1a2e; }
+
+    .agree-list {
+      border: 1px solid #e8eaf0;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 28px;
+    }
+    .agree-item {
+      display: flex;
+      align-items: center;
+      padding: 13px 16px;
+      gap: 10px;
+      border-bottom: 1px solid #f0f1f5;
+    }
+    .agree-item:last-child { border-bottom: none; }
+    .agree-item input { width: 17px; height: 17px; accent-color: #3d52d5; cursor: pointer; flex-shrink: 0; }
+    .agree-item label { font-size: 14px; color: #333; cursor: pointer; flex: 1; }
+    .agree-item .badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 20px;
+      flex-shrink: 0;
+    }
+    .badge-req { background: #eef1ff; color: #3d52d5; }
+    .badge-opt { background: #f0f0f0; color: #888; }
+    .agree-item a {
+      font-size: 12px;
+      color: #888;
+      text-decoration: underline;
+      flex-shrink: 0;
+      margin-left: 4px;
+    }
+
+    .btn-submit {
+      width: 100%;
+      padding: 15px;
+      background: #3d52d5;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .15s;
+    }
+    .btn-submit:hover { background: #2f42c2; }
+    .btn-submit:disabled { background: #b0b8e0; cursor: not-allowed; }
+    .btn-cancel {
+      display: block;
+      width: 100%;
+      margin-top: 12px;
+      padding: 12px;
+      background: transparent;
+      color: #888;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: border-color .15s;
+    }
+    .btn-cancel:hover { border-color: #aaa; color: #555; }
+    .msg { font-size: 13px; color: #e53e3e; margin-top: 12px; text-align: center; min-height: 18px; }
+  </style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">
+    <img src="/logo-zero100-square.png" alt="제로백스쿨" />
+    <span class="logo-text">제로백스쿨</span>
+  </div>
+
+  <h1>서비스 이용 동의</h1>
+  <p class="sub">카카오 계정으로 제로백스쿨에 가입합니다.</p>
+
+  <div class="profile-box">
+    <div class="profile-icon">😊</div>
+    <div>
+      <div class="profile-name" id="user-name">로딩 중...</div>
+      <div class="profile-email" id="user-email"></div>
+    </div>
+  </div>
+
+  <label class="agree-all" for="chk-all">
+    <input type="checkbox" id="chk-all" />
+    <span>전체 동의하기</span>
+  </label>
+
+  <div class="agree-list">
+    <div class="agree-item">
+      <input type="checkbox" id="chk-terms" />
+      <label for="chk-terms">이용약관 동의</label>
+      <span class="badge badge-req">필수</span>
+      <a href="/terms" target="_blank">보기</a>
+    </div>
+    <div class="agree-item">
+      <input type="checkbox" id="chk-privacy" />
+      <label for="chk-privacy">개인정보 수집 및 이용 동의</label>
+      <span class="badge badge-req">필수</span>
+      <a href="/privacy" target="_blank">보기</a>
+    </div>
+    <div class="agree-item">
+      <input type="checkbox" id="chk-marketing" />
+      <label for="chk-marketing">마케팅 정보 수신 동의 (이메일, 알림)</label>
+      <span class="badge badge-opt">선택</span>
+    </div>
+  </div>
+
+  <button class="btn-submit" id="btn-submit" disabled>동의하고 가입하기</button>
+  <button class="btn-cancel" id="btn-cancel">취소</button>
+  <div class="msg" id="msg"></div>
+</div>
+
+<script>
+  // 서버에서 미리 주입한 사용자 정보
+  fetch('/auth/kakao/pending-info')
+    .then(r => r.json())
+    .then(data => {
+      if (!data.nickname) { location.href = '/app'; return; }
+      document.getElementById('user-name').textContent = data.nickname;
+      document.getElementById('user-email').textContent = data.email || '';
+    })
+    .catch(() => { location.href = '/app'; });
+
+  const chkAll      = document.getElementById('chk-all');
+  const chkTerms    = document.getElementById('chk-terms');
+  const chkPrivacy  = document.getElementById('chk-privacy');
+  const chkMarketing= document.getElementById('chk-marketing');
+  const btnSubmit   = document.getElementById('btn-submit');
+  const msg         = document.getElementById('msg');
+
+  const required = [chkTerms, chkPrivacy];
+  const all      = [chkTerms, chkPrivacy, chkMarketing];
+
+  function updateState() {
+    const allChecked = all.every(c => c.checked);
+    const reqChecked = required.every(c => c.checked);
+    chkAll.checked = allChecked;
+    btnSubmit.disabled = !reqChecked;
+  }
+
+  chkAll.addEventListener('change', () => {
+    all.forEach(c => { c.checked = chkAll.checked; });
+    updateState();
+  });
+  all.forEach(c => { c.addEventListener('change', updateState); });
+
+  btnSubmit.addEventListener('click', async () => {
+    btnSubmit.disabled = true;
+    msg.textContent = '';
+    try {
+      const res = await fetch('/auth/kakao/agree', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ marketing: chkMarketing.checked }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        location.href = '/app';
+      } else {
+        msg.textContent = data.message || '오류가 발생했습니다.';
+        btnSubmit.disabled = false;
+      }
+    } catch {
+      msg.textContent = '네트워크 오류가 발생했습니다. 다시 시도해주세요.';
+      btnSubmit.disabled = false;
+    }
+  });
+
+  document.getElementById('btn-cancel').addEventListener('click', () => {
+    location.href = '/app';
+  });
+</script>
+</body>
+</html>

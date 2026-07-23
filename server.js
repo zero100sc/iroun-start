@@ -751,22 +751,48 @@ app.get('/auth/kakao/callback', authLimiter, async (req, res) => {
     const nickname = kakaoUser.kakao_account?.profile?.nickname || '카카오 사용자';
     const email    = kakaoUser.kakao_account?.email || null;
 
-    // 기존 카카오 계정 조회 또는 신규 가입
-    let { rows } = await pool.query('SELECT id, role FROM users WHERE kakao_id = $1', [kakaoId]);
-    if (!rows[0]) {
-      const ins = await pool.query(
-        `INSERT INTO users (kakao_id, name, email, auth_provider) VALUES ($1, $2, $3, 'kakao') RETURNING id, role`,
-        [kakaoId, nickname, email],
-      );
-      rows = ins.rows;
+    // 기존 회원이면 바로 로그인, 신규면 약관 동의 화면으로
+    const { rows } = await pool.query('SELECT id, role FROM users WHERE kakao_id = $1', [kakaoId]);
+    if (rows[0]) {
+      req.session.userId = rows[0].id;
+      req.session.role   = rows[0].role;
+      return res.redirect('/app');
     }
 
-    req.session.userId = rows[0].id;
-    req.session.role   = rows[0].role;
-    res.redirect('/app');
+    req.session.pendingKakao = { kakaoId, nickname, email };
+    res.redirect('/auth/kakao/terms');
   } catch (err) {
     console.error('kakao callback error:', err.message, err.stack);
     res.redirect('/app?error=kakao_error');
+  }
+});
+
+app.get('/auth/kakao/terms', (req, res) => {
+  if (!req.session.pendingKakao) return res.redirect('/app');
+  res.sendFile(path.join(__dirname, 'public', 'kakao-terms.html'));
+});
+
+app.get('/auth/kakao/pending-info', (req, res) => {
+  if (!req.session.pendingKakao) return res.json({});
+  const { nickname, email } = req.session.pendingKakao;
+  res.json({ nickname, email });
+});
+
+app.post('/auth/kakao/agree', authLimiter, async (req, res) => {
+  const pending = req.session.pendingKakao;
+  if (!pending) return res.status(400).json({ success: false, message: '세션이 만료됐습니다. 다시 시도해주세요.' });
+  try {
+    const ins = await pool.query(
+      `INSERT INTO users (kakao_id, name, email, auth_provider) VALUES ($1, $2, $3, 'kakao') RETURNING id, role`,
+      [pending.kakaoId, pending.nickname, pending.email],
+    );
+    delete req.session.pendingKakao;
+    req.session.userId = ins.rows[0].id;
+    req.session.role   = ins.rows[0].role;
+    res.json({ success: true });
+  } catch (err) {
+    console.error('kakao agree error:', err.message);
+    res.status(500).json({ success: false, message: '가입 중 오류가 발생했습니다.' });
   }
 });
 
