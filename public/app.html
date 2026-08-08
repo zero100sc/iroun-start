@@ -121,6 +121,26 @@
     .match-card .ev span{font-size:0.74rem;background:#f1eef7;color:var(--violet);padding:3px 9px;border-radius:999px;}
     .hidden{display:none;}
 
+    /* ── 합격 아이템명 결과 ── */
+    .name-result-wrap{margin-top:28px;}
+    .name-round-header{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+    .name-round-header .round-label{font-size:0.78rem;font-weight:700;color:#fff;background:var(--violet);padding:3px 10px;border-radius:999px;}
+    .name-round-header .round-title{font-size:1rem;font-weight:700;color:var(--text);}
+    .name-card{border:2px solid var(--line);border-radius:14px;padding:20px 22px;margin-bottom:12px;cursor:pointer;transition:border-color .18s,box-shadow .18s,background .18s;}
+    .name-card:hover{border-color:#b8a8e0;box-shadow:0 6px 20px rgba(100,70,180,0.10);}
+    .name-card.selected{border-color:var(--violet);background:#f6f3ff;}
+    .name-card .nc-top{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+    .name-card .nc-type{font-size:0.75rem;font-weight:700;padding:3px 10px;border-radius:999px;white-space:nowrap;}
+    .nc-type.t0{background:#eef1ff;color:#3d52d5;}
+    .nc-type.t1{background:#fff0f6;color:#c0185a;}
+    .nc-type.t2{background:#f0faf4;color:#1a7a4a;}
+    .name-card .nc-name{font-size:1.18rem;font-weight:800;color:var(--text);letter-spacing:-0.3px;}
+    .name-card .nc-reason{font-size:0.84rem;color:var(--muted);margin-top:6px;line-height:1.5;}
+    .name-card .nc-select-hint{font-size:0.76rem;color:var(--violet);margin-top:10px;font-weight:600;opacity:0.7;}
+    .btn-reGen{display:flex;align-items:center;gap:8px;margin:20px auto 0;padding:11px 28px;border-radius:10px;border:2px solid var(--violet);background:#fff;color:var(--violet);font-size:0.9rem;font-weight:700;cursor:pointer;transition:background .15s;}
+    .btn-reGen:hover{background:#f6f3ff;}
+    .btn-reGen:disabled{border-color:#ccc;color:#ccc;cursor:not-allowed;}
+
     .btn-kakao{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:13px 22px;border-radius:11px;font-size:0.95rem;font-weight:700;font-family:inherit;cursor:pointer;background:#FEE500;color:#1B1726;border:none;text-decoration:none;transition:filter .2s,transform .1s;}
     .btn-kakao:hover{filter:brightness(0.95);transform:translateY(-1px);}
   </style>
@@ -288,7 +308,7 @@
             <input type="text" id="i-s3" aria-label="차별화 전략 3" placeholder="차별화 전략 3" />
           </div>
           <div class="btn-row"><button class="btn ghost" onclick="goMypage()">← 마이페이지</button><button class="btn" id="btn-gennames" onclick="genNames()">AI 아이템명 생성 →</button></div>
-          <div id="name-suggestions" style="margin-top:18px"></div>
+          <div id="name-suggestions"></div>
         </div>
       </section>
 
@@ -510,8 +530,15 @@
           </div>`).join('');
     }
 
-    // ── STEP2 아이템 정의 + AI 아이템명 (목업) ──
-    function goItem() { show('item'); clearMsg($('#item-msg')); $('#name-suggestions').innerHTML = ''; }
+    // ── STEP2 아이템 정의 + AI 아이템명 ──
+    const TYPE_CLASS = ['t0', 't1', 't2'];
+    let nameGenCount = 0;
+
+    function goItem() {
+      show('item'); clearMsg($('#item-msg'));
+      $('#name-suggestions').innerHTML = '';
+      nameGenCount = 0;
+    }
     function itemPayload() {
       return {
         coreFunction: $('#i-core').value, customerBenefit: $('#i-benefit').value,
@@ -519,27 +546,82 @@
         strategies: [$('#i-s1').value, $('#i-s2').value, $('#i-s3').value].filter((s) => s.trim()),
       };
     }
+
+    async function runNameGen(isRegen) {
+      if (nameGenCount >= 3) return;
+      const genBtn  = $('#btn-gennames');
+      const regenEl = $('#btn-regen');
+      if (genBtn)  { genBtn.disabled = true;  genBtn.textContent  = 'AI 생성 중…'; }
+      if (regenEl) { regenEl.disabled = true; regenEl.textContent = '생성 중…'; }
+
+      const r = await fetch('/api/items/name-suggestions', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+      const d = await r.json();
+
+      if (genBtn)  { genBtn.disabled = false;  genBtn.textContent  = 'AI 아이템명 생성 →'; }
+
+      if (!d.suggestions) {
+        setMsg($('#item-msg'), 'err', d.error || '생성에 실패했습니다.');
+        if (regenEl) { regenEl.disabled = false; regenEl.textContent = '다시 생성하기'; }
+        return;
+      }
+
+      nameGenCount++;
+      const wrap = $('#name-suggestions');
+
+      // 기존 "다시 생성하기" 버튼 제거
+      const oldBtn = wrap.querySelector('#btn-regen');
+      if (oldBtn) oldBtn.remove();
+
+      // 회차 헤더 + 카드 3종 렌더
+      const roundId = `round-${nameGenCount}`;
+      const roundHtml = `
+        <div class="name-result-wrap" id="${roundId}">
+          <div class="name-round-header">
+            <span class="round-label">${nameGenCount}차 제안</span>
+            <span class="round-title">합격 아이템명 ${nameGenCount === 1 ? '' : nameGenCount + '번째 '}제안</span>
+          </div>
+          ${d.suggestions.map((s, i) => `
+            <div class="name-card" role="button" tabindex="0" onclick="selectName(${s.id}, this)" onkeydown="if(event.key==='Enter')selectName(${s.id},this)">
+              <div class="nc-top">
+                <span class="nc-type ${TYPE_CLASS[i]}">${esc(s.type)}</span>
+              </div>
+              <div class="nc-name">${esc(s.suggestion_text)}</div>
+              ${s.reason ? `<div class="nc-reason">${esc(s.reason)}</div>` : ''}
+              <div class="nc-select-hint">클릭해서 이 아이템명 선택하기</div>
+            </div>`).join('')}
+        </div>`;
+      wrap.insertAdjacentHTML('beforeend', roundHtml);
+
+      // 다시 생성하기 버튼 (최대 3회)
+      if (nameGenCount < 3) {
+        wrap.insertAdjacentHTML('beforeend',
+          `<button id="btn-regen" class="btn-reGen" onclick="runNameGen(true)">↻ 다시 생성하기 (${nameGenCount}/3)</button>`);
+      } else {
+        wrap.insertAdjacentHTML('beforeend',
+          `<p style="text-align:center;color:var(--muted);font-size:0.83rem;margin-top:16px">최대 3회 생성 완료 — 마음에 드는 아이템명을 선택하세요.</p>`);
+      }
+
+      // 스크롤
+      document.getElementById(roundId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
     async function genNames() {
       const p = itemPayload();
       if (p.strategies.length < 3) { setMsg($('#item-msg'), 'err', '차별화 전략 3가지를 모두 입력해주세요.'); return; }
-      const btn = $('#btn-gennames'); btn.disabled = true; btn.textContent = '생성 중…';
-      await fetch('/api/items', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(p) });
-      const r = await fetch('/api/items/name-suggestions', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
-      btn.disabled = false; btn.textContent = 'AI 아이템명 생성 →';
-      const d = await r.json();
-      if (!d.suggestions) { setMsg($('#item-msg'), 'err', d.error || '생성에 실패했습니다.'); return; }
-      $('#name-suggestions').innerHTML =
-        `<div class="msg ok" style="display:block">AI가 제안한 아이템명 3안입니다${d.mock ? ' (샘플)' : ''}. 하나를 선택하세요.</div>` +
-        d.suggestions.map((s) => `
-          <div class="match-card" style="cursor:pointer" role="button" tabindex="0" onclick="selectName(${s.id}, this)">
-            <span class="seg-tag">${esc(s.type)}</span>
-            <div class="name" style="margin-top:6px">${esc(s.suggestion_text)}</div>
-          </div>`).join('');
+      clearMsg($('#item-msg'));
+      $('#name-suggestions').innerHTML = '';
+      nameGenCount = 0;
+      // 데이터 저장 후 생성
+      const sv = await fetch('/api/items', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(p) });
+      const sd = await sv.json();
+      if (!sd.success) { setMsg($('#item-msg'), 'err', sd.error || '저장 실패'); return; }
+      await runNameGen(false);
     }
+
     async function selectName(id, el) {
       await fetch(`/api/items/name-suggestions/${id}/select`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' } });
-      document.querySelectorAll('#name-suggestions .match-card').forEach((c) => { c.style.borderColor = ''; });
-      el.style.borderColor = 'var(--violet)';
+      document.querySelectorAll('#name-suggestions .name-card').forEach((c) => c.classList.remove('selected'));
+      el.classList.add('selected');
       setMsg($('#item-msg'), 'ok', '아이템명이 선택됐습니다. STEP3 분석 또는 STEP4 매칭으로 진행하세요.');
       markDone(2);
     }

@@ -8,6 +8,19 @@ const { body, validationResult } = require('express-validator');
 const bcrypt    = require('bcryptjs');
 const pgSession = require('connect-pg-simple')(session);
 const path = require('path');
+const fs    = require('fs');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
+
+const gemini = process.env.GEMINI_API_KEY
+  ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY).getGenerativeModel({
+      model: 'gemini-1.5-flash',
+      generationConfig: { responseMimeType: 'application/json' },
+    })
+  : null;
+
+const STEP2_PROMPT = fs.readFileSync(
+  path.join(__dirname, 'prompts', 'Step2_IDEA_Make.md'), 'utf8'
+);
 
 const app    = express();
 const isProd = process.env.NODE_ENV === 'production';
@@ -481,34 +494,67 @@ app.post('/api/items', requireAuth, async (req, res) => {
 // AI 사업아이템명 3안 생성
 app.post('/api/items/name-suggestions', requireAuth, async (req, res) => {
   try {
-    const pr = await pool.query(`SELECT cp.*, io.core_function, io.customer_benefit, ip.problem_point
-      FROM customer_profile cp
-      LEFT JOIN item_overview io ON io.profile_id=cp.id
-      LEFT JOIN item_problem ip ON ip.profile_id=cp.id
-      WHERE cp.user_id=$1`, [req.session.userId]);
+    const pr = await pool.query(
+      `SELECT cp.*, io.core_function, io.customer_benefit,
+              ip.problem_point, ip.market_status,
+              id2.strategy_1, id2.strategy_2, id2.strategy_3
+       FROM customer_profile cp
+       LEFT JOIN item_overview io        ON io.profile_id=cp.id
+       LEFT JOIN item_problem ip         ON ip.profile_id=cp.id
+       LEFT JOIN item_differentiation id2 ON id2.profile_id=cp.id
+       WHERE cp.user_id=$1`, [req.session.userId]);
     const p = pr.rows[0];
     if (!p) return res.status(400).json({ error: '먼저 프로필을 입력해주세요.', needProfile: true });
-    // 아이템(개요/문제) 미입력 시 차단 — LEFT JOIN이라 프로필만 있으면 p가 truthy이므로 명시 검사
     if (p.core_function == null && p.customer_benefit == null && p.problem_point == null)
       return res.status(400).json({ error: '먼저 아이템을 입력해주세요.', needItem: true });
 
-    // ── 목업 생성 ── // TODO: AI 연동 (LLM API로 합격형 아이템명 3안 생성)
-    const kw = p.core_function || p.core_tech || p.industry_code || '혁신 기술';
-    const benefit = p.customer_benefit || '맞춤형';
-    const target = (p.segments || []).includes('SMB') ? '소상공인' : '창업기업';
-    const problem = p.problem_point || '시장의 비효율';
-    const mock = [
-      { type: '기술중심', text: `${kw} 기반 ${benefit} 솔루션` },
-      { type: '혜택중심', text: `${target}을 위한 ${benefit} 올인원 플랫폼` },
-      { type: '문제중심', text: `${problem}을(를) 해결하는 ${kw} 서비스` },
-    ];
+    let suggestions;
+
+    if (gemini) {
+      // ── Gemini AI 생성 ──
+      const userData = [
+        `업종: ${p.industry_code || '미입력'}`,
+        `세그먼트: ${(p.segments || []).join(', ') || '미입력'}`,
+        `지역: ${p.region_sido || '미입력'}`,
+        `핵심 기능: ${p.core_function || '미입력'}`,
+        `고객 혜택: ${p.customer_benefit || '미입력'}`,
+        `시장 현황: ${p.market_status || '미입력'}`,
+        `핵심 문제점: ${p.problem_point || '미입력'}`,
+        `차별화 전략 1: ${p.strategy_1 || '미입력'}`,
+        `차별화 전략 2: ${p.strategy_2 || '미입력'}`,
+        `차별화 전략 3: ${p.strategy_3 || '미입력'}`,
+      ].join('\n');
+
+      const prompt = STEP2_PROMPT.replace('{{USER_DATA}}', userData);
+      const result = await gemini.generateContent(prompt);
+      const parsed = JSON.parse(result.response.text());
+
+      suggestions = parsed.names.map((n) => ({
+        type: n.type,
+        suggestion_text: n.name,
+        reason: n.reason,
+      }));
+    } else {
+      // ── API 키 없을 때 목업 폴백 ──
+      const kw      = p.core_function || p.industry_code || '혁신 기술';
+      const benefit = p.customer_benefit || '맞춤형';
+      const target  = (p.segments || []).includes('SMB') ? '소상공인' : '창업기업';
+      suggestions = [
+        { type: '기본형',      suggestion_text: `${kw} 기반 ${benefit} 플랫폼`,         reason: 'GEMINI_API_KEY 미설정 — 샘플' },
+        { type: '차별성 강조형', suggestion_text: `기존 방식 대체 ${kw} 솔루션`,           reason: 'GEMINI_API_KEY 미설정 — 샘플' },
+        { type: '시장 기회형',  suggestion_text: `${target} 맞춤 ${benefit} 서비스`,     reason: 'GEMINI_API_KEY 미설정 — 샘플' },
+      ];
+    }
+
     await pool.query(`DELETE FROM item_name_suggestion WHERE profile_id=$1`, [p.id]);
     const out = [];
-    for (const s of mock) {
-      const r = await pool.query(`INSERT INTO item_name_suggestion (profile_id,suggestion_text,type) VALUES ($1,$2,$3) RETURNING id,suggestion_text,type,selected`, [p.id, s.text, s.type]);
-      out.push(r.rows[0]);
+    for (const s of suggestions) {
+      const r = await pool.query(
+        `INSERT INTO item_name_suggestion (profile_id,suggestion_text,type) VALUES ($1,$2,$3) RETURNING id,suggestion_text,type,selected`,
+        [p.id, s.suggestion_text, s.type]);
+      out.push({ ...r.rows[0], reason: s.reason });
     }
-    res.json({ mock: true, suggestions: out });
+    res.json({ mock: !anthropic, suggestions: out });
   } catch (err) { console.error('namegen error:', err.message); res.status(500).json({ error: '생성 실패' }); }
 });
 

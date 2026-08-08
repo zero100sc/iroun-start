@@ -9,6 +9,7 @@
     "migrate": "node scripts/migrate.js"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "bcryptjs": "^3.0.3",
     "connect-pg-simple": "^10.0.0",
     "dotenv": "^17.4.2",
