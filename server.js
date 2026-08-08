@@ -18,9 +18,10 @@ const gemini = process.env.GEMINI_API_KEY
     })
   : null;
 
-const STEP2_PROMPT = fs.readFileSync(
-  path.join(__dirname, 'prompts', 'Step2_IDEA_Make.md'), 'utf8'
-);
+const STEP2_PROMPT_PATH = path.join(__dirname, 'prompts', 'Step2_IDEA_Make.md');
+const STEP2_PROMPT = fs.existsSync(STEP2_PROMPT_PATH)
+  ? fs.readFileSync(STEP2_PROMPT_PATH, 'utf8')
+  : '';
 
 const app    = express();
 const isProd = process.env.NODE_ENV === 'production';
