@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "migrate": "node scripts/migrate.js"
+    "migrate": "node scripts/migrate.js",
+    "collect": "node scripts/run-collector.js"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
@@ -24,6 +25,7 @@
     "node": ">=20"
   },
   "devDependencies": {
-    "docx": "^9.7.1"
+    "docx": "^9.7.1",
+    "pptxgenjs": "^4.0.1"
   }
 }
