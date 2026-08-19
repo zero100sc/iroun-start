@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>공고 검색 — 제로백스쿨</title>
+  <meta name="robots" content="noindex" />
+  <link rel="icon" href="/logo-zero100-square.png" />
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink:#0B1B34; --violet:#7A2E9C; --magenta:#E6197E;
+      --grad:linear-gradient(120deg,#7A2E9C,#E6197E);
+      --paper:#F7F6FB; --line:#E7E4F0; --text:#1B1726; --muted:#6A6380;
+      --data:'Space Grotesk','Pretendard Variable',sans-serif;
+    }
+    .data{font-family:var(--data);font-feature-settings:"tnum";}
+    @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important;}}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Pretendard Variable',-apple-system,sans-serif;background:var(--paper);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased;}
+    a{color:inherit;text-decoration:none;}
+    .wrap{max-width:1120px;margin:0 auto;padding:0 20px;}
+    a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:2.5px solid var(--magenta);outline-offset:3px;border-radius:6px;}
+
+    header{position:sticky;top:0;z-index:10;background:#fff;border-bottom:1px solid var(--line);}
+    header .wrap{display:flex;align-items:center;justify-content:space-between;height:64px;}
+    header img{height:30px;width:auto;display:block;}
+    .h-right{display:flex;align-items:center;gap:14px;}
+    .h-right a{font-size:0.88rem;color:var(--muted);font-weight:600;}
+    .h-right a:hover{color:var(--violet);}
+    .pill{display:inline-flex;align-items:center;gap:6px;padding:7px 15px;border:1px solid var(--line);border-radius:999px;line-height:1;transition:border-color .15s,color .15s;}
+    .pill:hover{border-color:var(--violet);color:var(--violet);}
+
+    main{padding:36px 0 80px;}
+    h1{font-size:1.5rem;font-weight:800;letter-spacing:-0.02em;margin-bottom:8px;}
+    .sub{color:var(--muted);font-size:0.94rem;}
+    .eyebrow{font-size:0.74rem;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:var(--magenta);margin-bottom:10px;display:inline-flex;align-items:center;gap:8px;}
+    .eyebrow::before{content:'';width:22px;height:1.5px;background:var(--magenta);display:inline-block;flex-shrink:0;}
+    .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:26px;margin-bottom:18px;}
+
+    /* ── 검색 바 ── */
+    .searchbar{display:flex;gap:10px;flex-wrap:wrap;}
+    .searchbar input[type=search]{flex:1 1 320px;min-width:0;padding:14px 18px;font-size:1rem;font-family:inherit;border:1.5px solid var(--line);border-radius:12px;background:#fff;color:var(--text);}
+    .searchbar input[type=search]:hover{border-color:#cdbfe6;}
+    .btn{padding:14px 26px;border:none;border-radius:12px;background:var(--grad);color:#fff;font-size:0.95rem;font-weight:700;font-family:inherit;cursor:pointer;white-space:nowrap;transition:opacity .15s;}
+    .btn:hover{opacity:0.9;}
+    .btn:disabled{opacity:0.5;cursor:not-allowed;}
+    .filters{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-top:14px;font-size:0.88rem;color:var(--muted);}
+    .filters select{padding:8px 12px;border:1px solid var(--line);border-radius:9px;font-family:inherit;font-size:0.88rem;background:#fff;color:var(--text);}
+    .filters label{display:inline-flex;align-items:center;gap:7px;cursor:pointer;}
+    .hint{margin-top:12px;font-size:0.82rem;color:var(--muted);}
+    .hint b{color:var(--violet);font-weight:700;}
+
+    /* ── 수집 현황 ── */
+    .stats{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px;}
+    .stat{flex:1 1 150px;background:#fff;border:1px solid var(--line);border-radius:13px;padding:15px 18px;}
+    .stat .k{font-size:0.75rem;color:var(--muted);font-weight:600;letter-spacing:0.02em;}
+    .stat .v{font-size:1.45rem;font-weight:800;letter-spacing:-0.02em;margin-top:2px;}
+    .stat .v.sm{font-size:0.98rem;font-weight:700;}
+
+    /* ── 결과 ── */
+    .rhead{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px;}
+    .rhead .count{font-size:0.92rem;color:var(--muted);}
+    .rhead .count b{color:var(--text);font-weight:800;}
+    .item{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin-bottom:11px;transition:border-color .15s,box-shadow .15s;}
+    .item:hover{border-color:#cdbfe6;box-shadow:0 4px 16px rgba(122,46,156,0.07);}
+    .item .top{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;}
+    .item h3{font-size:1.04rem;font-weight:700;letter-spacing:-0.01em;line-height:1.45;}
+    .item .agency{font-size:0.84rem;color:var(--muted);margin-top:3px;}
+    .item .desc{font-size:0.89rem;color:#4a4459;margin-top:10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+    .tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;}
+    .tag{font-size:0.74rem;font-weight:700;padding:4px 10px;border-radius:999px;background:#f3eef8;color:var(--violet);white-space:nowrap;}
+    .tag.gray{background:#f2f1f5;color:var(--muted);}
+    .tag.money{background:#fdecf4;color:var(--magenta);}
+    .badge{flex-shrink:0;font-size:0.73rem;font-weight:800;padding:5px 11px;border-radius:999px;white-space:nowrap;}
+    .badge.open{background:#e8f6ee;color:#1a7a45;}
+    .badge.closed{background:#f2f1f5;color:#8a8398;}
+    .badge.soon{background:#fdecf4;color:var(--magenta);}
+
+    /* ── 검색 해석 패널 ── 무엇을 어떻게 찾았는지 사용자에게 그대로 보여준다.
+       검색이 왜 이런 결과를 냈는지 알 수 없으면 사용자는 검색어를 고칠 방법이 없다. */
+    .qinfo{background:#f7f6fb;border:1px solid #e6e3f0;border-radius:12px;
+           padding:13px 15px;margin-bottom:16px;font-size:0.86rem;line-height:1.75;}
+    .qinfo .row{display:flex;gap:8px;flex-wrap:wrap;align-items:baseline;}
+    .qinfo .row + .row{margin-top:5px;}
+    .qinfo .lab{color:#6f6880;flex-shrink:0;min-width:62px;font-weight:700;}
+    .qinfo .chip{background:#fff;border:1px solid #ddd8ea;border-radius:999px;
+                 padding:2px 10px;font-weight:700;color:#3f3a4d;}
+    .qinfo .chip.syn{background:#eef4ff;border-color:#cfe0ff;color:#2c5aa8;font-weight:600;}
+    .qinfo .chip.off{background:#f2f1f5;border-color:#e4e2ea;color:#918b9e;
+                     font-weight:600;text-decoration:line-through;}
+    .qinfo .chip.miss{background:#fdecf4;border-color:#f6d3e4;color:#b02a6b;}
+    .qinfo .fix{color:#1a7a45;font-weight:700;}
+    .qinfo .note{margin-top:9px;padding-top:9px;border-top:1px dashed #ddd8ea;color:#7a7488;}
+
+    /* 일치 등급 — 정확 일치와 참고 결과를 눈으로 구분할 수 있어야 한다. */
+    .tier{flex-shrink:0;font-size:0.7rem;font-weight:800;padding:4px 9px;
+          border-radius:6px;white-space:nowrap;}
+    .tier.exact  {background:#e8f6ee;color:#1a7a45;}
+    .tier.synonym{background:#eef4ff;color:#2c5aa8;}
+    .tier.partial{background:#fff5e6;color:#95611a;}
+    .tier.weak   {background:#f2f1f5;color:#8a8398;}
+    .miss{margin-top:7px;font-size:0.79rem;color:#b02a6b;}
+    .item .link{display:inline-block;margin-top:12px;font-size:0.84rem;font-weight:700;color:var(--violet);}
+    .item .link:hover{text-decoration:underline;}
+
+    .empty{background:#fff;border:1px dashed #d9d3e6;border-radius:14px;padding:48px 24px;text-align:center;color:var(--muted);}
+    .empty .big{font-size:1.05rem;font-weight:700;color:var(--text);margin-bottom:8px;}
+    .empty code{background:#f3eef8;color:var(--violet);padding:2px 7px;border-radius:5px;font-size:0.86rem;}
+
+    .pager{display:flex;gap:8px;justify-content:center;align-items:center;margin-top:22px;flex-wrap:wrap;}
+    .pager button{padding:9px 15px;border:1px solid var(--line);background:#fff;border-radius:9px;font-family:inherit;font-size:0.86rem;font-weight:600;color:var(--text);cursor:pointer;}
+    .pager button:hover:not(:disabled){border-color:var(--violet);color:var(--violet);}
+    .pager button:disabled{opacity:0.4;cursor:not-allowed;}
+    .pager .now{font-size:0.86rem;color:var(--muted);padding:0 6px;}
+
+    .note{margin-top:26px;padding:16px 20px;border-radius:12px;background:#fff8e6;border:1px solid #f2e3b8;font-size:0.85rem;color:#6b5720;}
+    @media (max-width:640px){
+      .item .top{flex-direction:column;}
+      .btn{width:100%;}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <a href="/"><img src="/logo-zero100.png" alt="제로백스쿨" /></a>
+      <nav class="h-right">
+        <a href="/">홈</a>
+        <a class="pill" href="/app">내 워크스페이스</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="eyebrow">공개 테스트</div>
+    <h1>정부지원사업 공고 검색</h1>
+    <p class="sub">로그인 없이 바로 검색할 수 있습니다. 수집된 공고 데이터를 확인하는 테스트용 페이지입니다.</p>
+
+    <div class="stats" id="stats" aria-live="polite"></div>
+
+    <div class="card">
+      <form class="searchbar" id="form" role="search">
+        <input type="search" id="q" name="q" placeholder="예: 청년 창업, 소상공인, 사업화 자금" autocomplete="off" aria-label="공고 검색어" />
+        <button class="btn" type="submit" id="submit">검색</button>
+      </form>
+      <div class="filters">
+        <label for="region">지역</label>
+        <select id="region"><option value="">전체</option></select>
+        <label><input type="checkbox" id="open" checked /> 모집 중인 공고만</label>
+      </div>
+      <p class="hint">검색어를 <b>띄어쓰기로 여러 개</b> 넣으면 모두 포함된 공고만 찾습니다. 공고명·기관·지원분야·요약·태그를 함께 검색합니다.</p>
+    </div>
+
+    <div class="rhead">
+      <div class="count" id="count"></div>
+    </div>
+    <div id="results"></div>
+    <div class="pager" id="pager"></div>
+
+    <p class="note" id="note" hidden></p>
+  </main>
+
+<script>
+(function () {
+  'use strict';
+
+  var $ = function (id) { return document.getElementById(id); };
+  var state = { q: '', region: '', open: true, page: 1, loading: false };
+
+  /* 텍스트는 전부 textContent 로 넣는다. DB 값을 innerHTML 로 그리면 XSS 통로가 된다. */
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text !== undefined && text !== null && text !== '') n.textContent = String(text);
+    return n;
+  }
+
+  function fmtDate(iso) {
+    if (!iso) return null;
+    var d = new Date(iso);
+    if (isNaN(d)) return null;
+    return d.getFullYear() + '.' + String(d.getMonth() + 1).padStart(2, '0') + '.' + String(d.getDate()).padStart(2, '0');
+  }
+
+  function daysLeft(iso) {
+    if (!iso) return null;
+    var d = new Date(iso);
+    if (isNaN(d)) return null;
+    var today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return Math.ceil((d - today) / 86400000);
+  }
+
+  /* 상세 링크는 http/https 만 허용한다 (javascript: 스킴 차단) */
+  function safeUrl(u) {
+    if (!u) return null;
+    try {
+      var p = new URL(u, window.location.origin);
+      return (p.protocol === 'http:' || p.protocol === 'https:') ? p.href : null;
+    } catch (e) { return null; }
+  }
+
+  // ── 수집 현황 ──────────────────────────────────────
+  /* 포털 이름만 앞에서 3개까지 보여주고 나머지는 '등' 으로 줄인다. */
+  function portalLabel(portals) {
+    var names = (portals || []).map(function (p) { return p.portal; });
+    if (!names.length) return '없음';
+    var head = names.slice(0, 3).join(', ');
+    return names.length > 3 ? head + ' 등' : head;
+  }
+
+  function renderStats(m) {
+    var box = $('stats');
+    box.textContent = '';
+    var cards = [
+      ['전체 공고', String(m.total) + '건'],
+      ['모집 중', String(m.open) + '건'],
+      ['수집 출처', portalLabel(m.portals)],
+      ['최근 갱신', fmtDate(m.lastSyncedAt) || '기록 없음']
+    ];
+    cards.forEach(function (c, i) {
+      var s = el('div', 'stat');
+      s.appendChild(el('div', 'k', c[0]));
+      s.appendChild(el('div', i >= 2 ? 'v sm data' : 'v data', c[1]));
+      box.appendChild(s);
+    });
+
+    // 포털별 건수는 화면을 어지럽히지 않게 마우스를 올렸을 때만 보여준다.
+    var portalCard = box.children[2];
+    if (portalCard && (m.portals || []).length) {
+      portalCard.title = m.portals.map(function (p) { return p.portal + ' ' + p.count + '건'; }).join('\n');
+    }
+
+    if (m.total === 0) {
+      var note = $('note');
+      note.textContent = '아직 DB에 공고가 없습니다. 터미널에서 npm run collect -- --live 를 실행해 공고를 수집한 뒤 다시 검색해보세요.';
+      note.hidden = false;
+    }
+  }
+
+  function loadMeta() {
+    fetch('/api/programs/meta')
+      .then(function (r) { return r.ok ? r.json() : Promise.reject(r); })
+      .then(function (m) {
+        renderStats(m);
+        var sel = $('region');
+        (m.regions || []).forEach(function (r) {
+          var o = document.createElement('option');
+          o.value = r; o.textContent = r;
+          sel.appendChild(o);
+        });
+      })
+      .catch(function () {
+        $('stats').appendChild(el('div', 'stat', '공고 현황을 불러오지 못했습니다.'));
+      });
+  }
+
+  // ── 결과 렌더 ──────────────────────────────────────
+  /* 검색을 어떻게 해석했는지 보여주는 패널.
+     동의어로 넓힌 것, 무시한 일반어, 오타 교정, 완화검색 발동을 전부 드러낸다. */
+  function renderQueryInfo(data) {
+    if (!data.query) return null;
+    var hasInfo = (data.coreTerms && data.coreTerms.length) ||
+                  (data.ignoredTerms && data.ignoredTerms.length) ||
+                  (data.corrections && data.corrections.length) ||
+                  data.relaxed || (data.warnings && data.warnings.length);
+    if (!hasInfo) return null;
+
+    var box = el('div', 'qinfo');
+
+    (data.corrections || []).forEach(function (c) {
+      var r = el('div', 'row');
+      r.appendChild(el('span', 'lab', '오타 교정'));
+      r.appendChild(el('span', 'fix', c.from + ' → ' + c.to));
+      box.appendChild(r);
+    });
+
+    (data.phrases || []).forEach(function (p) {
+      var r = el('div', 'row');
+      r.appendChild(el('span', 'lab', '정확 구문'));
+      r.appendChild(el('span', 'chip', '"' + p + '"'));
+      box.appendChild(r);
+    });
+
+    if (data.coreTerms && data.coreTerms.length) {
+      var r1 = el('div', 'row');
+      r1.appendChild(el('span', 'lab', '핵심어'));
+      data.coreTerms.forEach(function (t) {
+        r1.appendChild(el('span', 'chip', t.term + (t.docFrequency != null ? ' (' + t.docFrequency + ')' : '')));
+        (t.synonyms || []).slice(0, 5).forEach(function (s) {
+          r1.appendChild(el('span', 'chip syn', s));
+        });
+      });
+      box.appendChild(r1);
+    }
+
+    if (data.ignoredTerms && data.ignoredTerms.length) {
+      var r2 = el('div', 'row');
+      r2.appendChild(el('span', 'lab', '제외한 말'));
+      data.ignoredTerms.forEach(function (t) { r2.appendChild(el('span', 'chip off', t)); });
+      box.appendChild(r2);
+    }
+
+    var notes = (data.warnings || []).slice();
+    if (data.relaxed && data.coreTerms && data.coreTerms.length) {
+      notes.push(data.strictCount > 0
+        ? '모든 조건을 만족하는 공고가 ' + data.strictCount + '건뿐이라, 일부만 맞는 공고도 함께 보여드립니다.'
+        : '모든 조건을 만족하는 공고가 없어, 일부만 맞는 공고를 보여드립니다.');
+    }
+    notes.forEach(function (n) { box.appendChild(el('div', 'note', n)); });
+
+    return box;
+  }
+
+  function renderItem(p) {
+    var box = el('article', 'item');
+    var top = el('div', 'top');
+
+    var left = el('div');
+    left.appendChild(el('h3', null, p.name));
+    var meta = [p.agency, p.field].filter(Boolean).join(' · ');
+    if (meta) left.appendChild(el('div', 'agency', meta));
+    top.appendChild(left);
+
+    if (p.match && p.match.tierText) {
+      top.appendChild(el('span', 'tier ' + p.match.tier, p.match.tierText));
+    }
+
+    var left_days = daysLeft(p.period_end);
+    var badge;
+    if (p.is_open === false) {
+      badge = el('span', 'badge closed', '마감');
+    } else if (left_days === null) {
+      badge = el('span', 'badge open', '상시 모집');
+    } else if (left_days < 0) {
+      badge = el('span', 'badge closed', '마감');
+    } else if (left_days <= 7) {
+      badge = el('span', 'badge soon', 'D-' + left_days);
+    } else {
+      badge = el('span', 'badge open', 'D-' + left_days);
+    }
+    top.appendChild(badge);
+    box.appendChild(top);
+
+    if (p.summary) box.appendChild(el('div', 'desc', p.summary));
+
+    // 어떤 개념이 빠졌는지 알려주면, 왜 이 공고가 나왔는지 사용자가 납득할 수 있다.
+    if (p.match && p.match.missingTerms && p.match.missingTerms.length) {
+      box.appendChild(el('div', 'miss', '이 공고에 없는 말: ' + p.match.missingTerms.join(', ')));
+    }
+
+    var tags = el('div', 'tags');
+    if (p.amount_text) tags.appendChild(el('span', 'tag money', p.amount_text));
+    if (p.region) tags.appendChild(el('span', 'tag', p.region));
+    if (p.funding_type) tags.appendChild(el('span', 'tag', p.funding_type));
+    var end = fmtDate(p.period_end);
+    if (end) tags.appendChild(el('span', 'tag gray', '마감 ' + end));
+    (p.target_stages || []).slice(0, 3).forEach(function (s) { tags.appendChild(el('span', 'tag gray', s)); });
+    if (p.source_portal) tags.appendChild(el('span', 'tag gray', p.source_portal));
+    if (tags.childNodes.length) box.appendChild(tags);
+
+    var url = safeUrl(p.detail_url);
+    if (url) {
+      var a = el('a', 'link', '공고 원문 보기 →');
+      a.href = url;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      box.appendChild(a);
+    }
+    return box;
+  }
+
+  function renderEmpty() {
+    var e = el('div', 'empty');
+    e.appendChild(el('div', 'big', '검색 결과가 없습니다.'));
+    e.appendChild(el('div', null, '검색어를 줄이거나 "모집 중인 공고만" 체크를 해제해보세요.'));
+    return e;
+  }
+
+  function renderPager(data) {
+    var pg = $('pager');
+    pg.textContent = '';
+    if (data.totalPages <= 1) return;
+
+    var prev = el('button', null, '← 이전');
+    prev.type = 'button';
+    prev.disabled = data.page <= 1;
+    prev.addEventListener('click', function () { state.page = data.page - 1; search(); });
+
+    var now = el('span', 'now data', data.page + ' / ' + data.totalPages);
+
+    var next = el('button', null, '다음 →');
+    next.type = 'button';
+    next.disabled = data.page >= data.totalPages;
+    next.addEventListener('click', function () { state.page = data.page + 1; search(); });
+
+    pg.appendChild(prev); pg.appendChild(now); pg.appendChild(next);
+  }
+
+  // ── 검색 ───────────────────────────────────────────
+  function search() {
+    if (state.loading) return;
+    state.loading = true;
+    $('submit').disabled = true;
+    $('count').textContent = '검색 중…';
+
+    var params = new URLSearchParams();
+    if (state.q) params.set('q', state.q);
+    if (state.region) params.set('region', state.region);
+    if (state.open) params.set('open', '1');
+    params.set('page', String(state.page));
+
+    fetch('/api/programs/search?' + params.toString())
+      .then(function (r) { return r.ok ? r.json() : Promise.reject(r); })
+      .then(function (data) {
+        var box = $('results');
+        box.textContent = '';
+
+        var c = $('count');
+        c.textContent = '';
+        if (data.query) {
+          c.appendChild(document.createTextNode('"'));
+          c.appendChild(el('b', null, data.query));
+          c.appendChild(document.createTextNode('" 검색 결과 '));
+        } else {
+          c.appendChild(document.createTextNode('전체 공고 '));
+        }
+        c.appendChild(el('b', null, String(data.total)));
+        c.appendChild(document.createTextNode('건'));
+
+        var info = renderQueryInfo(data);
+        if (info) box.appendChild(info);
+
+        if (!data.items.length) {
+          box.appendChild(renderEmpty());
+        } else {
+          data.items.forEach(function (p) { box.appendChild(renderItem(p)); });
+        }
+        renderPager(data);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      })
+      .catch(function () {
+        $('count').textContent = '';
+        var box = $('results');
+        box.textContent = '';
+        var e = el('div', 'empty');
+        e.appendChild(el('div', 'big', '검색에 실패했습니다.'));
+        e.appendChild(el('div', null, '잠시 후 다시 시도해주세요.'));
+        box.appendChild(e);
+      })
+      .finally(function () {
+        state.loading = false;
+        $('submit').disabled = false;
+      });
+  }
+
+  // ── 이벤트 ─────────────────────────────────────────
+  $('form').addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    state.q = $('q').value.trim();
+    state.page = 1;
+    search();
+  });
+  $('region').addEventListener('change', function () {
+    state.region = this.value; state.page = 1; search();
+  });
+  $('open').addEventListener('change', function () {
+    state.open = this.checked; state.page = 1; search();
+  });
+
+  // 주소창의 ?q= 로 바로 검색된 상태를 공유할 수 있게 한다.
+  var initial = new URLSearchParams(window.location.search).get('q');
+  if (initial) { $('q').value = initial; state.q = initial.trim(); }
+
+  loadMeta();
+  search();
+})();
+</script>
+</body>
+</html>

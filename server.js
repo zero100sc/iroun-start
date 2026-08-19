@@ -10,6 +10,7 @@ const pgSession = require('connect-pg-simple')(session);
 const path = require('path');
 const fs    = require('fs');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { searchPrograms } = require('./src/search');
 
 const gemini = process.env.GEMINI_API_KEY
   ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY).getGenerativeModel({
@@ -450,6 +451,84 @@ app.get('/api/match', requireAuth, async (req, res) => {
   }
 });
 
+// ── 공고 검색 (로그인 불필요 · 공개) ─────────────────────
+// 라우트 순서 주의: '/api/programs/:id' 보다 반드시 먼저 등록해야 한다.
+// 그렇지 않으면 :id 가 'search'·'meta' 를 공고 ID 로 잡아먹는다.
+
+// 공개 엔드포인트라 DB 를 지키기 위해 별도 제한을 건다.
+const searchLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000, max: 100,
+  standardHeaders: true, legacyHeaders: false,
+  message: { error: '검색 요청이 너무 많습니다. 잠시 후 다시 시도해주세요.' },
+});
+
+// 반환 컬럼 목록은 검색 모듈(src/search/index.js)이 들고 있다 — 점수 계산과 한 곳에 있어야
+// 컬럼을 늘릴 때 어긋나지 않는다.
+const SEARCH_PAGE_SIZE = 20;
+
+// 수집 현황 — 검색 전에 "DB에 공고가 들어와 있는지" 확인용
+app.get('/api/programs/meta', searchLimiter, async (req, res) => {
+  try {
+    const [totals, portals, regions] = await Promise.all([
+      pool.query(`SELECT COUNT(*)::int AS total,
+                         COUNT(*) FILTER (WHERE is_open)::int AS open_count,
+                         MAX(synced_at) AS last_synced
+                    FROM gov_program`),
+      // source_portal 은 수집기 내부 코드다(ONEGOV 는 여러 포털을 모아오는 2차 소스라
+      // 그대로 쓰면 실제 출처가 가려진다). 공고 원문 주소의 호스트로 진짜 포털을 되짚는다.
+      pool.query(`
+        SELECT CASE
+                 WHEN detail_url LIKE '%bizinfo.go.kr%'   THEN '기업마당'
+                 WHEN detail_url LIKE '%k-startup.go.kr%' THEN 'K스타트업'
+                 WHEN detail_url LIKE '%sbiz24.kr%'       THEN '소상공인24'
+                 WHEN detail_url LIKE '%wbiz.or.kr%'      THEN '여성기업종합정보포털'
+                 WHEN source_portal = 'BIZINFO'  THEN '기업마당'
+                 WHEN source_portal = 'KSTARTUP' THEN 'K스타트업'
+                 WHEN source_portal = 'SBIZ24'   THEN '소상공인24'
+                 WHEN source_portal = 'WBIZ'     THEN '여성기업종합정보포털'
+                 ELSE '기타'
+               END AS portal,
+               COUNT(*)::int AS count
+          FROM gov_program GROUP BY 1 ORDER BY 2 DESC`),
+      pool.query(`SELECT DISTINCT region FROM gov_program
+                   WHERE region IS NOT NULL AND region <> '' ORDER BY region`),
+    ]);
+    res.json({
+      total: totals.rows[0].total,
+      open: totals.rows[0].open_count,
+      lastSyncedAt: totals.rows[0].last_synced,
+      portals: portals.rows,
+      regions: regions.rows.map((r) => r.region),
+    });
+  } catch (err) {
+    console.error('programs meta error:', err.message);
+    res.status(500).json({ error: '공고 현황을 불러오지 못했습니다.' });
+  }
+});
+
+// 검색 — 검색 알고리즘 본체는 src/search 에 있다.
+//
+// 예전에는 여기서 토큰을 ILIKE 로 AND 결합하는 게 전부였다. 그 방식의 한계:
+//  · '인공지능' 으로 찾으면 'AI' 공고 431건을 통째로 놓쳤다(동의어 없음)
+//  · '지원' 같은 일반어가 그대로 AND 조건에 들어갔다(전체의 90%에 등장)
+//  · 관련도 정렬이 없어 마감일 순으로만 나왔다
+// 지금은 질의계획 → 개념그룹 AND → 필드가중·희귀어 IDF → 일치등급 순으로 처리한다.
+app.get('/api/programs/search', searchLimiter, async (req, res) => {
+  try {
+    const result = await searchPrograms(pool, {
+      q:        req.query.q,
+      region:   req.query.region,
+      openOnly: req.query.open === '1',
+      page:     req.query.page,
+      pageSize: SEARCH_PAGE_SIZE,
+    });
+    res.json(result);
+  } catch (err) {
+    console.error('programs search error:', err.message);
+    res.status(500).json({ error: '검색에 실패했습니다.' });
+  }
+});
+
 // 공고 상세
 app.get('/api/programs/:id', async (req, res) => {
   try {
@@ -879,6 +958,7 @@ app.post('/auth/kakao/agree', authLimiter, async (req, res) => {
 //  워크스페이스 (회원 영역 진입점)
 // ═══════════════════════════════════════════════════════
 app.get('/app',     (req, res) => res.sendFile(path.join(__dirname, 'public', 'app.html')));
+app.get('/search',  (req, res) => res.sendFile(path.join(__dirname, 'public', 'search.html')));
 app.get('/terms',   (req, res) => res.sendFile(path.join(__dirname, 'public', 'terms.html')));
 app.get('/privacy', (req, res) => res.sendFile(path.join(__dirname, 'public', 'privacy.html')));
 
