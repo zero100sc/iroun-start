@@ -430,7 +430,10 @@ app.get('/api/match', requireAuth, async (req, res) => {
     const profile = pr.rows[0];
     if (!profile) return res.status(400).json({ error: '먼저 프로필을 입력해주세요.', needProfile: true });
 
-    const progs = await pool.query(`SELECT * FROM gov_program`);
+    // SELECT * 를 쓰면 안 된다. migration 011 이 넣은 search_blob(제목·분야·태그·요약·기관을
+    // 이어붙인 생성 컬럼)까지 전 행을 실어와 매칭 요청마다 전송량이 두 배가 된다.
+    // 매칭 로직은 그 컬럼을 쓰지 않는다.
+    const progs = await pool.query(`SELECT ${MATCH_FIELDS} FROM gov_program`);
     const matches = progs.rows
       .map((p) => {
         const m = matchProgram(profile, p);
@@ -465,6 +468,11 @@ const searchLimiter = rateLimit({
 // 반환 컬럼 목록은 검색 모듈(src/search/index.js)이 들고 있다 — 점수 계산과 한 곳에 있어야
 // 컬럼을 늘릴 때 어긋나지 않는다.
 const SEARCH_PAGE_SIZE = 20;
+
+// /api/match 가 읽는 컬럼. matchProgram 의 판정 입력과 응답에 실어 보내는 값만 담는다.
+// search_blob 처럼 검색 전용으로 커진 컬럼을 끌고 오지 않기 위해 명시한다.
+const MATCH_FIELDS = `program_id, name, agency, field, region, amount_text, summary,
+         target_segments, target_stages, target_industries`;
 
 // 수집 현황 — 검색 전에 "DB에 공고가 들어와 있는지" 확인용
 app.get('/api/programs/meta', searchLimiter, async (req, res) => {
@@ -532,7 +540,10 @@ app.get('/api/programs/search', searchLimiter, async (req, res) => {
 // 공고 상세
 app.get('/api/programs/:id', async (req, res) => {
   try {
-    const { rows } = await pool.query(`SELECT * FROM gov_program WHERE program_id = $1`, [req.params.id]);
+    // search_blob 은 검색 내부용 생성 컬럼이라 브라우저로 내보내지 않는다.
+    const { rows } = await pool.query(
+      `SELECT * FROM gov_program WHERE program_id = $1`, [req.params.id]);
+    if (rows[0]) delete rows[0].search_blob;
     if (!rows[0]) return res.status(404).json({ error: '공고를 찾을 수 없습니다.' });
     res.json(rows[0]);
   } catch (err) {
@@ -957,6 +968,11 @@ app.post('/auth/kakao/agree', authLimiter, async (req, res) => {
 // ═══════════════════════════════════════════════════════
 //  워크스페이스 (회원 영역 진입점)
 // ═══════════════════════════════════════════════════════
+// (삭제됨) /preview-login — 화면 확인용 임시 우회 로그인이었다.
+// 인증 없이 query string 의 u 값으로 임의 계정 세션을 만들어 주는 코드라,
+// NODE_ENV 를 빠뜨린 리비전이 하나라도 뜨면 그대로 계정 탈취 통로가 된다.
+// Cloud Run 은 NODE_ENV 를 자동으로 넣어주지 않는다. 화면 확인이 필요하면
+// 정상 로그인을 쓰거나, 추적되지 않는 별도 파일로 분리할 것.
 app.get('/app',     (req, res) => res.sendFile(path.join(__dirname, 'public', 'app.html')));
 app.get('/search',  (req, res) => res.sendFile(path.join(__dirname, 'public', 'search.html')));
 app.get('/terms',   (req, res) => res.sendFile(path.join(__dirname, 'public', 'terms.html')));

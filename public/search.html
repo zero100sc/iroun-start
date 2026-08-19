@@ -177,20 +177,32 @@
     return n;
   }
 
+  /* period_end 는 DATE 라 서버가 '2026-08-31T00:00:00.000Z'(UTC 자정)로 직렬화한다.
+     이걸 현지 시각 기준 getFullYear/getMonth/getDate 로 읽으면 한국(UTC+9)에서는
+     그대로지만 서버보다 서쪽 시간대에서는 하루 전날로 표시된다.
+     날짜는 시각이 아니라 '달력상의 날' 이므로 UTC 계열로 읽어야 한다. */
   function fmtDate(iso) {
     if (!iso) return null;
     var d = new Date(iso);
     if (isNaN(d)) return null;
-    return d.getFullYear() + '.' + String(d.getMonth() + 1).padStart(2, '0') + '.' + String(d.getDate()).padStart(2, '0');
+    return d.getUTCFullYear() + '.' + String(d.getUTCMonth() + 1).padStart(2, '0')
+         + '.' + String(d.getUTCDate()).padStart(2, '0');
   }
 
+  /* 남은 일수. 마감일(UTC 자정)과 오늘(현지 달력 날짜)을 같은 기준으로 맞춰서 뺀다.
+     예전에는 UTC 자정 시각에서 현지 자정 시각을 빼는 바람에
+     한국에서 '오늘 마감' 이 D-1 로, '어제 마감' 이 -0 으로 나왔다.
+     -0 은 `-0 < 0` 이 false 라 마감 판정을 그대로 통과해, 이미 끝난 공고가
+     분홍색 'D-0' 배지로 표시됐다. (2026-08-19 리뷰에서 발견) */
   function daysLeft(iso) {
     if (!iso) return null;
     var d = new Date(iso);
     if (isNaN(d)) return null;
-    var today = new Date();
-    today.setHours(0, 0, 0, 0);
-    return Math.ceil((d - today) / 86400000);
+    var endUTC = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+    var n = new Date();
+    var todayUTC = Date.UTC(n.getFullYear(), n.getMonth(), n.getDate());
+    var diff = Math.round((endUTC - todayUTC) / 86400000);
+    return diff === 0 ? 0 : diff;   /* -0 을 0 으로 정규화 */
   }
 
   /* 상세 링크는 http/https 만 허용한다 (javascript: 스킴 차단) */

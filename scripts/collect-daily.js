@@ -31,11 +31,20 @@ const useSSL = !dbUrl.includes('/cloudsql/') && !dbUrl.includes('localhost') && 
 
 const ymd = (d) => d.toISOString().slice(0, 10);
 
-/** 이미 수집된 것 중 가장 최신 공고의 게시일. 없으면 null. */
+/**
+ * 이미 수집된 것 중 가장 최신 공고의 게시일. 없으면 null.
+ *
+ * published_at 은 외부 API 가 준 값을 그대로 보관한 것이라 형식을 신뢰할 수 없다.
+ * 예전에는 전체를 통째로 ::timestamptz 캐스팅해서, 깨진 값 하나만 섞여 있어도
+ * "invalid input syntax for type timestamp" 로 일일 수집 전체가 죽었다.
+ * 그래서 ISO 앞머리(YYYY-MM-DD) 형태인 행만 골라 캐스팅한다.
+ */
 async function latestCollectedDate(pool) {
   const { rows } = await pool.query(
     `SELECT MAX((payload->>'published_at')::timestamptz) AS newest
-       FROM raw_document WHERE source_id = $1`,
+       FROM raw_document
+      WHERE source_id = $1
+        AND payload->>'published_at' ~ '^\\d{4}-\\d{2}-\\d{2}'`,
     [SOURCE_ID],
   );
   return rows[0]?.newest ? new Date(rows[0].newest) : null;
@@ -43,6 +52,8 @@ async function latestCollectedDate(pool) {
 
 async function main() {
   const pool = new Pool({ connectionString: dbUrl, ssl: useSSL ? { rejectUnauthorized: false } : false });
+  // 유휴 커넥션 끊김으로 프로세스가 죽지 않도록 한다(run-collector.js 와 같은 이유).
+  pool.on('error', (err) => console.error(`  · 커넥션 오류(무시하고 계속): ${err.message}`));
 
   try {
     // 신규 건을 나중에 되짚기 위한 기준점. gov_program.created_at 은 INSERT 때만 찍히고

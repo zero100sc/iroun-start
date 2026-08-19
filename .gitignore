@@ -6,3 +6,6 @@ zero100/
 # 임시/테스트 산출물
 _*
 qa_*
+
+# 코드 리뷰 훅 상태 파일
+.claude/.review-state.json

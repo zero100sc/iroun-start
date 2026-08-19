@@ -198,8 +198,12 @@ async function groupDocFrequencies(pool, groups) {
  * 순수 IDF 를 그대로 곱하면 점수 규모가 널뛰어 등급 정렬을 방해하므로 완만하게 눌렀다.
  */
 function idfWeight(df, total) {
-  if (!total) return 1;
-  return 1 + Math.log(total / (1 + df)) / Math.log(total);
+  // total 이 1 이면 log(1)=0 으로 나누게 되어 NaN/-Infinity 가 나온다.
+  // 그 값이 toFixed 를 거쳐 "NaN" 이라는 맨 토큰으로 SQL 에 박히면 PostgreSQL 이
+  // 컬럼명으로 해석해 모든 검색이 500 이 됐다. (2026-08-19 리뷰에서 발견)
+  if (!total || total <= 1) return 1;
+  const w = 1 + Math.log(total / (1 + df)) / Math.log(total);
+  return Number.isFinite(w) ? w : 1;
 }
 
 /**

@@ -23,6 +23,19 @@ const PROGRAM_FIELDS = `program_id, source_portal, name, agency, field, region,
 // 엄격검색 결과가 이 수보다 적으면 완화검색을 함께 돌린다(기획서 4장 Tier 5).
 const MIN_STRICT_RESULTS = 5;
 
+/**
+ * 지역 필터.
+ *
+ * region 을 정확히 일치시키면 안 된다. inferRegion 은 전국 대상 공고뿐 아니라
+ * 지역을 판단하지 못한 공고까지 '전국' 으로 넣기 때문에(normalize/korean.js) 그 값이
+ * 코퍼스의 다수를 차지한다. 서울을 고른 사용자에게서 정작 신청 가능한 전국 공고가
+ * 통째로 사라지는 문제가 있었다. (2026-08-19 리뷰에서 발견)
+ */
+function regionSql(region, params) {
+  const p = params.add(region);
+  return `(region = ${p} OR region = '전국')`;
+}
+
 const TIER_LABEL = { 4: 'exact', 3: 'synonym', 2: 'partial', 1: 'weak' };
 const TIER_TEXT  = {
   exact:   '정확 일치',
@@ -46,7 +59,11 @@ async function searchPrograms(pool, opts) {
   const { groups, phrases } = plan;
 
   // 검색어가 아예 없으면 목록 열람으로 취급한다.
-  if (!q) return browse(pool, { region, openOnly, page, pageSize, plan });
+  // 원문(q)이 아니라 정규화 결과를 봐야 한다. '·' 나 '「」' 만 친 경우 q 는 참이지만
+  // 정규화하면 빈 문자열이 되는데, 예전에는 이게 weakSearch 로 흘러가 조건 0개짜리
+  // 질의가 되어 전체 5,326건을 '검색 결과' 로 돌려줬다. (2026-08-19 리뷰에서 발견)
+  const hasAnyTerm = groups.length || phrases.length || plan.generic.length || plan.intent.length;
+  if (!q || !hasAnyTerm) return browse(pool, { region, openOnly, page, pageSize, plan });
 
   // 핵심어가 하나도 없는 질의('지원사업' 같은) — 일반어로라도 훑되 등급을 낮게 준다.
   if (!groups.length && !phrases.length) {
@@ -63,7 +80,12 @@ async function searchPrograms(pool, opts) {
   // 모든 개념그룹이 걸리는 행만 후보로 삼는다. AND 라 후보가 극히 적고, 그 소수에만
   // 점수를 매기므로 빠르다. 기획서의 Tier 1~2 에 해당한다.
   const strict = await runPass(pool, { ...common, mode: 'strict' });
-  if (strict.total >= MIN_STRICT_RESULTS) {
+
+  // 개념이 하나뿐이면 완화 조건(_hits >= 1)이 엄격 조건(_hits = 1)과 글자만 다를 뿐 같다.
+  // 그대로 두면 똑같은 질의를 두 번 돌리고, 게다가 전부 '정확 일치' 인 결과를 두고
+  // "일부만 맞는 공고도 함께 보여드립니다" 라고 잘못 안내한다. (2026-08-19 리뷰에서 발견)
+  const relaxWouldDiffer = groups.length > 1 || (groups.length === 0 && phrases.length > 0);
+  if (strict.total >= MIN_STRICT_RESULTS || !relaxWouldDiffer) {
     return shape({ ...strict, plan, groups, page, pageSize,
                    relaxed: false, strictCount: strict.total, corpusSize, dfs });
   }
@@ -118,7 +140,7 @@ async function runPass(pool, { plan, groups, phrases, idfs, region, openOnly, pa
   }
 
   const filters = candidate.length ? [candidate.join(' AND ')] : [];
-  if (region)   filters.push(`region = ${params.add(region)}`);
+  if (region)   filters.push(regionSql(region, params));
   if (openOnly) filters.push('is_open = TRUE AND (period_end IS NULL OR period_end >= CURRENT_DATE)');
   const filterSql = filters.length ? `WHERE ${filters.join(' AND ')}` : '';
 
@@ -231,7 +253,7 @@ async function weakSearch(pool, { plan, region, openOnly, page, pageSize }) {
   const terms = [...plan.generic, ...plan.intent].slice(0, 4);
   const params = new R.Params();
   const where = terms.map((t) => R.termHitSql(t, params));
-  if (region)   where.push(`region = ${params.add(region)}`);
+  if (region)   where.push(regionSql(region, params));
   if (openOnly) where.push('is_open = TRUE AND (period_end IS NULL OR period_end >= CURRENT_DATE)');
   const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
 
@@ -264,7 +286,7 @@ async function weakSearch(pool, { plan, region, openOnly, page, pageSize }) {
 async function browse(pool, { region, openOnly, page, pageSize, plan }) {
   const params = new R.Params();
   const where = [];
-  if (region)   where.push(`region = ${params.add(region)}`);
+  if (region)   where.push(regionSql(region, params));
   if (openOnly) where.push('is_open = TRUE AND (period_end IS NULL OR period_end >= CURRENT_DATE)');
   const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
 

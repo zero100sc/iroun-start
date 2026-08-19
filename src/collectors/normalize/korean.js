@@ -129,19 +129,34 @@ function inferFundingType(blob, title = '') {
 }
 
 // ── 날짜 ──
-// "20260815", "2026-08-15", "2026.08.15", "2026년 8월 15일" 을 모두 받는다.
+// "20260815", "2026-08-15", "2026.8.15", "2026-8-5", "2026년 8월 15일" 을 모두 받는다.
+//
+// 한 자리 월·일을 반드시 받아야 한다. 공고 본문은 '2026.8.1' 처럼 앞자리 0 을 생략해 쓰는
+// 경우가 흔한데, 예전에는 이걸 못 읽어 period_end 가 null 로 저장됐다.
+// 그러면 upsertProgram 이 is_open 을 TRUE 로 두고 closeExpired 는 period_end IS NOT NULL
+// 조건 탓에 건너뛰어, 마감된 공고가 영원히 '모집중' 으로 남았다. (2026-08-19 리뷰에서 발견)
 function parseDate(value) {
   if (!value) return null;
   const s = String(value).trim();
 
-  let m = s.match(/^(\d{4})[-.\/]?(\d{2})[-.\/]?(\d{2})/);
-  if (!m) m = s.match(/(\d{4})년\s*(\d{1,2})월\s*(\d{1,2})일/);
+  // 구분자가 없으면 8자리 붙여쓰기(20260815)로만 인정한다.
+  // 구분자가 있으면 한 자리 월·일도 받는다.
+  let m = s.match(/^(\d{4})(\d{2})(\d{2})(?!\d)/)
+       || s.match(/^(\d{4})\s*[-.\/]\s*(\d{1,2})\s*[-.\/]\s*(\d{1,2})(?!\d)/)
+       || s.match(/(\d{4})년\s*(\d{1,2})월\s*(\d{1,2})일/);
   if (!m) return null;
 
-  const [, y, mo, d] = m;
-  const iso = `${y}-${String(mo).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-  const dt = new Date(`${iso}T00:00:00Z`);
-  return Number.isNaN(dt.getTime()) ? null : iso;
+  const y = Number(m[1]);
+  const mo = Number(m[2]);
+  const d = Number(m[3]);
+  if (mo < 1 || mo > 12 || d < 1 || d > 31) return null;
+
+  // 2026-02-30 같은 '형식은 맞지만 존재하지 않는 날짜' 를 걸러낸다.
+  // Date 는 이런 값을 조용히 다음 달로 넘겨버리므로 되돌려 확인해야 한다.
+  const dt = new Date(Date.UTC(y, mo - 1, d));
+  if (dt.getUTCFullYear() !== y || dt.getUTCMonth() !== mo - 1 || dt.getUTCDate() !== d) return null;
+
+  return `${y}-${String(mo).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
 }
 
 /**

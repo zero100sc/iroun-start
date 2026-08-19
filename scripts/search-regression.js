@@ -125,9 +125,59 @@ const CASES = [
     check: (r) => (r.total > 100 ? true : `총 ${r.total}건 — 구성명사 분해가 동작하지 않는 듯`),
   },
   {
-    name: '가운뎃점 정규화 — 시설ㆍ공간ㆍ보육 분야가 띄어쓰기로도 검색된다',
-    q: '시설 공간',
-    check: (r) => (r.total > 0 ? true : "가운뎃점(ㆍ)이 든 분야명을 찾지 못했다"),
+    // 이 테스트의 앞선 판본은 '시설 공간'(이미 띄어 쓴 말)으로 검색해서 ㆍ 경로를 아예
+    // 타지 않았다. 기능이 완전히 망가진 상태에서도 통과하는 가짜 테스트였다.
+    // 반드시 ㆍ(U+318D) 를 직접 입력해야 한다.
+    name: '가운뎃점 정규화 — 사용자가 ㆍ 를 그대로 쳐도 검색된다',
+    q: '시설ㆍ공간',
+    check: (r) => {
+      if (r.normalizedQuery.indexOf('ㆍ') !== -1 || r.normalizedQuery.indexOf('ᆞ') !== -1) {
+        return `정규화 후에도 가운뎃점이 남아 있다: ${JSON.stringify(r.normalizedQuery)}`;
+      }
+      if (!r.coreTerms.some((c) => c.term === '시설') || !r.coreTerms.some((c) => c.term === '공간')) {
+        return `핵심어가 둘로 갈라지지 않았다: ${JSON.stringify(r.coreTerms.map((c) => c.term))}`;
+      }
+      return r.total > 0 || '결과가 0건';
+    },
+  },
+  {
+    name: '구두점만 입력 — 전체 목록을 검색 결과로 위장하지 않는다',
+    q: '·',
+    check: (r) => {
+      const bad = r.items.find((it) => it.match && it.match.tier !== 'weak');
+      if (bad) return `등급이 붙은 결과가 나왔다: ${bad.name}`;
+      if (r.coreTerms.length) return '구두점에서 핵심어가 생겼다';
+      return true;
+    },
+  },
+  {
+    name: '조사 절단 보험 — 전문가 로 검색해도 전문가 공고가 잡힌다',
+    q: '전문가',
+    check: async (r, { pool }) => {
+      const { rows } = await pool.query(
+        `SELECT COUNT(*)::int AS n FROM gov_program WHERE search_blob ILIKE '%전문가%'`);
+      if (!rows[0].n) return true;   // 코퍼스에 없으면 검사 불가
+      if (!r.total) return `원문에 전문가 공고가 ${rows[0].n}건 있는데 검색 결과가 0건`;
+      const hit = r.items.some((it) => hay(it).includes('전문가'));
+      return hit || '전문가 가 실제로 든 공고가 결과에 없다 — 어간만 검색된 듯';
+    },
+  },
+  {
+    name: '지역 필터 — 시도를 골라도 전국 공고가 함께 나온다',
+    q: '창업',
+    check: async (r, { search, pool }) => {
+      const { rows } = await pool.query(
+        `SELECT COUNT(*)::int AS n FROM gov_program WHERE region = '전국' AND search_blob ILIKE '%창업%'`);
+      if (!rows[0].n) return true;
+      const seoul = await search({ q: '창업', region: '서울', pageSize: 50 });
+      const hasNational = seoul.items.some((it) => it.region === '전국');
+      return hasNational || '서울로 좁혔더니 전국 공고가 하나도 안 나온다';
+    },
+  },
+  {
+    name: '단일 개념 질의 — 불필요한 완화검색을 돌리지 않는다',
+    q: '반도체',
+    check: (r) => (r.relaxed ? '개념이 하나뿐인데 완화검색이 켜졌다(엄격과 동일 조건)' : true),
   },
   {
     name: '빈 검색어 — 목록 열람으로 떨어지고 오류가 없다',

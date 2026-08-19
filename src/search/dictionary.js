@@ -119,8 +119,13 @@ for (const g of SYNONYM_GROUPS) {
  */
 function normalizeText(s) {
   return String(s || '')
+    // 가운뎃점 치환이 NFKC 보다 **먼저** 와야 한다.
+    // 'ㆍ'(U+318D) 는 NFKC 를 거치면 'ᆞ'(U+119E) 로 바뀌어 아래 문자군을 빠져나간다.
+    // 잡으려던 바로 그 글자가 정규화 때문에 안 잡히는 상황이었다. (2026-08-19 리뷰에서 발견)
+    // U+119E·U+11A2 도 함께 넣어, 이미 NFKC 를 거친 입력에도 대비한다.
+    .replace(/[ㆍ·・･•‧∙ᆞᆢ]/g, ' ')
     .normalize('NFKC')
-    .replace(/[ㆍ·・･•‧∙]/g, ' ')   // 각종 가운뎃점 → 공백
+    .replace(/[ᆞᆢ]/g, ' ')  // NFKC 가 새로 만들어낸 것까지 한 번 더
     .replace(/[「」『』【】〔〕]/g, ' ') // 공고명 장식 괄호
     .replace(/\s+/g, ' ')
     .trim();

@@ -46,6 +46,12 @@ async function main() {
 
   const pool = new Pool({ connectionString: dbUrl, ssl: useSSL ? { rejectUnauthorized: false } : false });
 
+  // 유휴 커넥션이 끊길 때 pg 는 pool 에 'error' 를 쏜다. 리스너가 없으면 Node 가
+  // 그대로 프로세스를 죽인다. 한 시간 넘게 도는 작업이라 중간에 커넥션이 한 번
+  // 끊기는 일(프록시 재시작·네트워크 순단)만으로 수집 전체를 잃을 수는 없다.
+  // 개별 질의 실패는 아래 루프의 try/catch 가 error_count 로 집계한다.
+  pool.on('error', (err) => console.error(`  · 커넥션 오류(무시하고 계속): ${err.message}`));
+
   try {
     const { rows } = await pool.query(
       'SELECT id, name FROM ingestion_source WHERE enabled = TRUE ORDER BY id',

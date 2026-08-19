@@ -91,14 +91,23 @@ async function runSource(pool, sourceId, { live = false, maxPages = MAX_PAGES, s
         try {
           const hash = sha256({ raw, v: NORMALIZER_VERSION });
           const program = collector.normalize(raw);
-          if (!program) { stat.skipped++; continue; }
 
-          await pool.query(
-            `INSERT INTO raw_document (source_id, run_id, source_doc_id, payload, content_hash)
-             VALUES ($1, $2, $3, $4, $5)
-             ON CONFLICT (source_id, source_doc_id, content_hash) DO NOTHING`,
-            [sourceId, runId, program.source_doc_id, JSON.stringify(raw), hash],
-          );
+          // 원문은 정규화 성공 여부와 무관하게 먼저 보관한다.
+          // 정규화에 실패한 문서야말로 나중에 규칙을 고쳐 재처리해야 할 대상인데,
+          // 예전에는 normalize 실패 시 continue 로 빠져나가 그 원문이 남지 않았다.
+          // (007_ingestion.sql 이 내건 '원문과 정규화 결과를 분리 보관' 원칙과 정면으로 어긋났다)
+          // source_doc_id 는 정규화 결과에서 오므로, 실패 시 수집기 원본 id 로 대체한다.
+          const rawDocId = program ? program.source_doc_id : (raw && raw.id ? String(raw.id) : null);
+          if (rawDocId) {
+            await pool.query(
+              `INSERT INTO raw_document (source_id, run_id, source_doc_id, payload, content_hash)
+               VALUES ($1, $2, $3, $4, $5)
+               ON CONFLICT (source_id, source_doc_id, content_hash) DO NOTHING`,
+              [sourceId, runId, rawDocId, JSON.stringify(raw), hash],
+            );
+          }
+
+          if (!program) { stat.skipped++; continue; }
 
           const changed = await upsertProgram(pool, program, hash, source.kogl_type);
           if (changed) stat.upserted++; else stat.skipped++;
@@ -144,6 +153,11 @@ async function upsertProgram(pool, p, hash, koglType) {
        field = EXCLUDED.field,
        target_stages = EXCLUDED.target_stages,
        target_segments = EXCLUDED.target_segments,
+       -- target_industries 와 kogl_type 은 INSERT 에만 있고 UPDATE 에서 빠져 있었다.
+       -- target_industries 는 matchProgram 의 하드필터라(server.js), 낡은 값이 굳으면
+       -- 공고가 특정 프로필에게 영구히 안 보이게 된다. (2026-08-19 리뷰에서 발견)
+       target_industries = EXCLUDED.target_industries,
+       kogl_type = EXCLUDED.kogl_type,
        region = EXCLUDED.region,
        amount_text = EXCLUDED.amount_text,
        max_amount = EXCLUDED.max_amount,

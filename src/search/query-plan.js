@@ -32,7 +32,16 @@ const PARTICLES = [
 // 관형형·연결형 어미 — '이용한', '활용하는', '적용된' 같은 꼴을 어간으로 되돌린다.
 const ENDINGS = ['하는', '되는', '시키는', '하기', '되기', '한', '된', '할', '될', '해', '돼'];
 
-/** 조사·어미 제거. 너무 짧아지면(1글자) 원형을 그대로 둔다 — '판로'→'판' 같은 사고 방지. */
+/**
+ * 조사·어미 제거.
+ *
+ * 형태소 분석기가 없어 규칙으로 떼는 이상, 오작동을 피할 수 없다.
+ * '미네럴을'→'미네럴' 은 옳지만 '전문가'→'전문', '경기도'→'경기' 는 틀린 절단이다.
+ * (2026-08-19 리뷰에서 발견 — 둘을 규칙만으로 가르는 방법은 없다)
+ *
+ * 그래서 하나를 고르지 않는다. planQuery 가 어간과 원형을 **둘 다** 검색 대안으로 넣어,
+ * 어느 쪽이 맞든 문서가 잡히게 한다. 이 함수는 어간만 돌려준다.
+ */
 function stripParticles(token) {
   if (token.length < 3) return token;
   for (const list of [ENDINGS, PARTICLES]) {
@@ -89,11 +98,16 @@ function planQuery(raw) {
   const { phrases, rest } = extractPhrases(text);
 
   // 4) 토큰화 + 조사·어미 제거
+  //    어간과 원형이 다르면 원형을 따로 기억해 둔다 — 잘못 잘렸을 때의 보험이다.
   const rawTokens = rest.split(/\s+/).filter(Boolean).slice(0, 8);
   const tokens = [];
+  const originalOf = new Map();   // 어간 → 사용자가 실제로 친 말
   for (const t of rawTokens) {
     const stem = stripParticles(t);
-    if (stem.length >= 1 && !tokens.includes(stem)) tokens.push(stem);
+    if (stem.length >= 1 && !tokens.includes(stem)) {
+      tokens.push(stem);
+      if (stem !== t) originalOf.set(stem, t);
+    }
   }
 
   // 5) 핵심어 / 일반어 / 의도어 분류
@@ -113,6 +127,14 @@ function planQuery(raw) {
     if (dup) continue;
 
     const alternatives = [{ terms: [t], weight: WEIGHT.exact, kind: 'exact' }];
+
+    // 사용자가 친 원형도 같은 무게로 넣는다.
+    // '전문가'→'전문' 처럼 조사가 아닌 것을 잘랐을 때 원형이 정답을 찾아준다.
+    const orig = originalOf.get(t);
+    if (orig && orig.toLowerCase() !== t.toLowerCase()) {
+      alternatives.push({ terms: [orig], weight: WEIGHT.exact, kind: 'exact' });
+    }
+
     for (const s of syns) {
       if (s.toLowerCase() === t.toLowerCase()) continue;
       alternatives.push({ terms: [s], weight: WEIGHT.synonym, kind: 'synonym' });

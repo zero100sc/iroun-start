@@ -9,6 +9,7 @@
     "migrate": "node scripts/migrate.js",
     "collect": "node scripts/run-collector.js",
     "collect:daily": "node scripts/collect-daily.js",
+    "test": "node scripts/unit-test.js",
     "search:test": "node scripts/search-regression.js"
   },
   "dependencies": {
