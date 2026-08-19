@@ -5,4 +5,21 @@ node_modules/
 zero100/
 .env
 .env.example
+
+# 문서는 컨테이너에 넣지 않는다.
 *.md
+
+# 단, prompts/ 의 .md 는 코드가 런타임에 읽는 파일이라 반드시 올라가야 한다.
+# server.js 가 부팅 시 prompts/Step2_IDEA_Make.md 를 읽어 AI 아이템명 생성에 쓴다.
+# 위 *.md 규칙에 걸려 빠지는 바람에 운영에서 이 파일이 없었고,
+# 그래서 1b148ce '프롬프트 파일 미존재 시 서버 크래시 방지' 를 넣어야 했다.
+# (2026-08-20 배포 준비 중 발견)
+!prompts/
+!prompts/*.md
+
+# 로컬 작업물 — 컨테이너와 무관하고 용량만 잡아먹는다.
+*.zip
+.claude/
+_*
+qa_*
+doc/
