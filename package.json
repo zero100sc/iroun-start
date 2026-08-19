@@ -7,7 +7,8 @@
     "start": "node server.js",
     "dev": "node --watch server.js",
     "migrate": "node scripts/migrate.js",
-    "collect": "node scripts/run-collector.js"
+    "collect": "node scripts/run-collector.js",
+    "collect:daily": "node scripts/collect-daily.js"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
