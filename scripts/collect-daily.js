@@ -45,6 +45,9 @@ async function main() {
   const pool = new Pool({ connectionString: dbUrl, ssl: useSSL ? { rejectUnauthorized: false } : false });
 
   try {
+    // 신규 건을 나중에 되짚기 위한 기준점. gov_program.created_at 은 INSERT 때만 찍히고
+    // UPDATE 로는 바뀌지 않으므로(003 스키마), 이 시각 이후 created_at = 이번에 새로 들어온 공고다.
+    const runStart = new Date();
     const before = await pool.query('SELECT COUNT(*)::int AS c FROM gov_program');
 
     const newest = await latestCollectedDate(pool);
@@ -74,6 +77,27 @@ async function main() {
     console.log(`마감 처리   : ${closed}건`);
     console.log(`오류        : ${r.errors}건`);
     console.log(`\nDB 총계     : ${after.rows[0].total}건 (모집중 ${after.rows[0].open}건)`);
+
+    // 새로 들어온 공고 목록 — 마감이 임박한 순으로. 아침 보고에서 이게 본문이다.
+    if (added > 0) {
+      const { rows: fresh } = await pool.query(
+        `SELECT name, agency, region, period_end, amount_text, detail_url
+           FROM gov_program
+          WHERE created_at >= $1
+          ORDER BY period_end ASC NULLS LAST
+          LIMIT 30`,
+        [runStart],
+      );
+      console.log('\n━━━ 신규 공고 ━━━');
+      for (const p of fresh) {
+        const due = p.period_end ? `~${ymd(new Date(p.period_end))}` : '상시';
+        const meta = [p.agency, p.region, p.amount_text].filter(Boolean).join(' · ');
+        console.log(`\n· ${p.name}`);
+        console.log(`  마감 ${due}${meta ? ` | ${meta}` : ''}`);
+        if (p.detail_url) console.log(`  ${p.detail_url}`);
+      }
+      if (added > fresh.length) console.log(`\n  … 외 ${added - fresh.length}건`);
+    }
 
     // 오류가 하나라도 있으면 스케줄러가 실패로 인지하도록 종료코드를 남긴다.
     if (r.status === 'failed') process.exitCode = 1;
