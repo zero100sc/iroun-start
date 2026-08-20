@@ -9,15 +9,13 @@ const bcrypt    = require('bcryptjs');
 const pgSession = require('connect-pg-simple')(session);
 const path = require('path');
 const fs    = require('fs');
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { getModel, generateWithTimeout } = require('./src/gemini');
 const { searchPrograms } = require('./src/search');
 
-const gemini = process.env.GEMINI_API_KEY
-  ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY).getGenerativeModel({
-      model: 'gemini-1.5-flash',
-      generationConfig: { responseMimeType: 'application/json' },
-    })
-  : null;
+// 모델 이름은 src/gemini.js 한 곳에만 있다 — 검색 분야 확장도 같은 것을 쓴다.
+// 예전에는 두 기능이 각자 'gemini-1.5-flash' 를 박아 두는 바람에, 그 모델이
+// 은퇴(404)했을 때 둘 다 조용히 죽었다. (2026-08-20)
+const gemini = getModel({ responseMimeType: 'application/json' });
 
 const STEP2_PROMPT_PATH = path.join(__dirname, 'prompts', 'Step2_IDEA_Make.md');
 const STEP2_PROMPT = fs.existsSync(STEP2_PROMPT_PATH)
@@ -617,7 +615,9 @@ app.post('/api/items/name-suggestions', requireAuth, async (req, res) => {
       ].join('\n');
 
       const prompt = STEP2_PROMPT.replace('{{USER_DATA}}', userData);
-      const result = await gemini.generateContent(prompt);
+      // 사용자가 버튼을 누르고 기다리는 작업이라 검색(3초)보다는 넉넉하게 준다.
+      // 그래도 상한은 있어야 한다 — 없으면 응답 없는 호출에 요청이 매달린다.
+      const result = await generateWithTimeout(gemini, prompt, 20000);
       const parsed = JSON.parse(result.response.text());
 
       suggestions = parsed.names.map((n) => ({

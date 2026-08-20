@@ -101,6 +101,10 @@
     .tier.synonym{background:#eef4ff;color:#2c5aa8;}
     .tier.partial{background:#fff5e6;color:#95611a;}
     .tier.weak   {background:#f2f1f5;color:#8a8398;}
+    .tier.domain {background:#f3eef8;color:var(--violet);}
+    .qinfo .expand{background:#f9f5fd;border:1px solid #e4d8f2;border-radius:10px;
+                   padding:11px 13px;margin-bottom:9px;line-height:1.55;}
+    .qinfo .expand .head{font-weight:800;color:var(--violet);margin-bottom:4px;}
     .miss{margin-top:7px;font-size:0.79rem;color:#b02a6b;}
     .item .link{display:inline-block;margin-top:12px;font-size:0.84rem;font-weight:700;color:var(--violet);}
     .item .link:hover{text-decoration:underline;}
@@ -272,15 +276,50 @@
   // ── 결과 렌더 ──────────────────────────────────────
   /* 검색을 어떻게 해석했는지 보여주는 패널.
      동의어로 넓힌 것, 무시한 일반어, 오타 교정, 완화검색 발동을 전부 드러낸다. */
+  /**
+   * 받침에 맞는 조사를 고른다. '이끼가' / '반도체가' / '오폐수가' vs '목재이' 같은 실수를 막는다.
+   * 한글 음절은 U+AC00 부터 28개 종성 단위로 배열되므로, 나머지가 0 이면 받침이 없다.
+   * 한글로 끝나지 않으면(영문·숫자) 판단하지 않고 안전한 '이(가)' 형태로 둔다.
+   */
+  function josa(word, withBatchim, withoutBatchim) {
+    var last = String(word || '').trim().slice(-1);
+    var code = last.charCodeAt(0);
+    if (!(code >= 0xac00 && code <= 0xd7a3)) return ' ' + withBatchim + '(' + withoutBatchim + ')';
+    return (code - 0xac00) % 28 ? withBatchim : withoutBatchim;
+  }
+
   function renderQueryInfo(data) {
     if (!data.query) return null;
+    var expanded = !!(data.expansion && data.expansion.applied);
     var hasInfo = (data.coreTerms && data.coreTerms.length) ||
                   (data.ignoredTerms && data.ignoredTerms.length) ||
                   (data.corrections && data.corrections.length) ||
-                  data.relaxed || (data.warnings && data.warnings.length);
+                  data.relaxed || (data.warnings && data.warnings.length) || expanded;
     if (!hasInfo) return null;
 
     var box = el('div', 'qinfo');
+
+    // 분야 확장 — 친 말이 공고에 없어 분야로 넓혀 찾은 경우.
+    // 정확 일치인 척하면 안 되므로, 무엇을 왜 넓혔는지 맨 위에 밝힌다.
+    var ex = data.expansion;
+    if (ex && ex.applied) {
+      var w = el('div', 'expand');
+      // 사용자가 친 말을 그대로 보여준다. ex.original 은 조사를 뗀 어간이라
+      // '떡볶이' 를 '떡볶' 으로 되돌려 주는 꼴이 된다.
+      var typed = data.query || (ex.original || []).join(', ');
+      var labels = (ex.domains || []).map(function (d) { return d.label; }).join(', ');
+      w.appendChild(el('div', 'head', '“' + typed + '”' + josa(typed, '이', '가') + ' 들어간 공고는 없습니다.'));
+      w.appendChild(el('div', null,
+        (ex.reason ? ex.reason + ' ' : '') +
+        '대신 ' + labels + ' 분야 공고를 찾았습니다.'));
+      var r0 = el('div', 'row');
+      r0.appendChild(el('span', 'lab', '넓힌 말'));
+      (ex.terms || []).slice(0, 12).forEach(function (t) {
+        r0.appendChild(el('span', 'chip syn', t));
+      });
+      w.appendChild(r0);
+      box.appendChild(w);
+    }
 
     (data.corrections || []).forEach(function (c) {
       var r = el('div', 'row');
@@ -296,7 +335,8 @@
       box.appendChild(r);
     });
 
-    if (data.coreTerms && data.coreTerms.length) {
+    // 분야 확장일 때 coreTerms 는 분야 이름이라, 위 안내와 겹치기만 한다.
+    if (!expanded && data.coreTerms && data.coreTerms.length) {
       var r1 = el('div', 'row');
       r1.appendChild(el('span', 'lab', '핵심어'));
       data.coreTerms.forEach(function (t) {
@@ -316,7 +356,7 @@
     }
 
     var notes = (data.warnings || []).slice();
-    if (data.relaxed && data.coreTerms && data.coreTerms.length) {
+    if (!expanded && data.relaxed && data.coreTerms && data.coreTerms.length) {
       notes.push(data.strictCount > 0
         ? '모든 조건을 만족하는 공고가 ' + data.strictCount + '건뿐이라, 일부만 맞는 공고도 함께 보여드립니다.'
         : '모든 조건을 만족하는 공고가 없어, 일부만 맞는 공고를 보여드립니다.');

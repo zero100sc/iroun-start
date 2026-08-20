@@ -236,6 +236,113 @@ const CASES = [
       return true;
     },
   },
+  {
+    // 정부 공고는 품목명으로 쓰이지 않는다. '이끼' 는 4,844건 원문 어디에도 없다.
+    // 그럴 때 빈 화면을 주는 대신 그 말이 속한 분야로 넓혀 찾는다. (domains.js)
+    name: '분야 확장 — 품목명이 0건이면 관련 분야로 넓혀 찾는다',
+    q: '이끼',
+    check: (r) => {
+      const ex = r.expansion;
+      if (!ex || !ex.applied) return '0건인데 분야 확장이 발동하지 않았다';
+      if (!r.total) return '확장했는데도 결과가 0건이다';
+      const keys = ex.domains.map((d) => d.key);
+      if (!keys.includes('forestry') || !keys.includes('environment')) {
+        return `산림·환경으로 넓혀야 하는데 ${JSON.stringify(keys)} 로 넓혔다`;
+      }
+
+      // 고른 분야와 실제로 검색에 쓴 말은 다르다. 어휘 수를 자를 때 분야를 이어 붙인 뒤
+      // 앞에서 자르면 뒤 분야가 통째로 날아가는데, 고른 분야만 보는 검사는 그걸 통과시킨다.
+      // 그래서 분야마다 최소 한 낱말은 실제로 들어갔는지 본다. (2026-08-20 리뷰에서 발견)
+      const { DOMAINS } = require('../src/search/domains');
+      for (const k of keys) {
+        const own = [...DOMAINS[k].terms, ...DOMAINS[k].agencies];
+        if (!ex.terms.some((t) => own.includes(t))) {
+          return `${k} 분야를 골라 놓고 그 분야 말은 하나도 검색에 안 썼다: ${JSON.stringify(ex.terms)}`;
+        }
+      }
+
+      // 확장 결과를 정확 일치인 척하면 안 된다.
+      const bad = r.items.find((it) => it.match && it.match.tier !== 'domain');
+      if (bad) return `확장 결과인데 등급이 '분야 확장' 이 아니다: ${bad.match.tier}`;
+      return true;
+    },
+  },
+  {
+    // 확장은 최후의 수단이다. 결과가 있는데도 넓히면 정확한 검색을 망친다.
+    name: '분야 확장 — 결과가 있으면 넓히지 않는다',
+    q: '반도체',
+    check: async (r, { search }) => {
+      if (r.expansion) return `결과가 ${r.total}건인데도 분야 확장이 돌았다`;
+      const few = await search({ q: '오폐수', page: 1, pageSize: 5 });   // 희소 질의
+      if (few.expansion) return `오폐수는 ${few.total}건 있는데 분야 확장이 돌았다`;
+      return true;
+    },
+  },
+  {
+    // 0건이라고 다 같은 0건이 아니다. 필터 때문에 0건이 된 것을 '그런 공고가 없다' 고
+    // 말하면 거짓말이다. '오폐수' 는 5건 있으나 전부 마감이라 '모집중만' 을 켜면 0건이
+    // 되는데, 예전 코드는 "오폐수가 들어간 공고는 없습니다" 라며 엉뚱한 58건을 보여줬다.
+    name: '분야 확장 — 필터 때문에 0건이 된 것은 넓히지 않는다',
+    q: '오폐수',
+    check: async (r, { search, pool }) => {
+      const { rows } = await pool.query(
+        `SELECT count(*)::int n FROM gov_program
+          WHERE search_blob LIKE '%오폐수%'
+            AND NOT (is_open = TRUE AND (period_end IS NULL OR period_end >= CURRENT_DATE))`);
+      if (!rows[0].n) return '표본이 부적절하다 — 마감된 오폐수 공고가 없다';
+      const filtered = await search({ q: '오폐수', openOnly: true, page: 1, pageSize: 5 });
+      if (filtered.total) return `표본이 부적절하다 — 모집중 오폐수 공고가 ${filtered.total}건 있다`;
+      if (filtered.expansion) return '필터로 0건이 된 것을 코퍼스에 없다고 보고 넓혔다';
+      return true;
+    },
+  },
+  {
+    // 큰따옴표 구문은 이 엔진에서 유일하게 '원문에 그대로 있음' 을 약속하는 장치다.
+    // 확장은 그 약속을 지킬 수 없다. 예전에는 구문을 조용히 버리고 확장한 뒤,
+    // 응답에는 phrases 를 그대로 실어 보내 지켜진 것처럼 보이게 했다.
+    name: '분야 확장 — 큰따옴표 구문이 있으면 넓히지 않는다',
+    q: '"창업보육센터" 이끼',
+    check: (r) => {
+      if (r.expansion) return '구문 질의인데 분야 확장이 돌았다 — 구문 약속이 깨진다';
+      return true;
+    },
+  },
+  {
+    // SEED_HINTS 를 그냥 [] 로 읽으면 프로토타입 체인이 딸려 나온다.
+    // q=constructor 하나로 검색 API 가 HTTP 500 이었다. (2026-08-20 리뷰에서 발견)
+    name: '분야 확장 — Object 내장 이름을 검색해도 터지지 않는다',
+    q: 'constructor',
+    check: async (r, { search }) => {
+      for (const q of ['toString', 'valueOf', '__proto__', 'hasOwnProperty']) {
+        const res = await search({ q, page: 1, pageSize: 2 });   // 던지면 테스트가 실패로 잡는다
+        if (typeof res.total !== 'number') return `${q} 응답이 이상하다`;
+      }
+      return true;
+    },
+  },
+  {
+    // 분야 사전의 어휘가 실제 공고에 존재하는지 검사한다.
+    // 한국어는 부분문자열 매칭이라, 세어 보지 않고 넣은 말은 반드시 사고가 난다
+    // ('조경' 은 전부 창'조경'제혁신센터였다). 공고가 새로 쌓여 어휘가 죽어도 여기서 걸린다.
+    //
+    // 어휘 하나에 질의 하나씩 돌리면 색인이 못 도와주는 전체 훑기가 80번이라
+    // 이 테스트 하나가 20초를 먹는다. 한 번에 끝낸다.
+    name: '분야 사전 — 등재 어휘가 코퍼스에 실재한다',
+    q: '창업',
+    check: async (r, { pool }) => {
+      const { DOMAINS } = require('../src/search/domains');
+      const all = [];
+      for (const [key, d] of Object.entries(DOMAINS)) {
+        for (const t of [...d.terms, ...d.agencies]) all.push([key, t]);
+      }
+      const { rows } = await pool.query(
+        `SELECT t, EXISTS (SELECT 1 FROM gov_program WHERE search_blob LIKE '%'||lower(t)||'%') AS alive
+           FROM unnest($1::text[]) AS t`, [all.map(([, t]) => t)]);
+      const aliveOf = new Map(rows.map((x) => [x.t, x.alive]));
+      const dead = all.filter(([, t]) => !aliveOf.get(t)).map(([k, t]) => `${k}/${t}`);
+      return dead.length === 0 || `코퍼스에 0건인 확장어: ${dead.join(', ')}`;
+    },
+  },
 ];
 
 (async () => {

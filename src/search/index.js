@@ -13,7 +13,8 @@
  *   '지원'·'활용'·'생산' 같은 일반어만 걸린 문서는 어떤 경우에도 결과에 넣지 않는다.
  *   (일반어는 개념그룹이 되지 못하므로 group_hits 조건이 이를 구조적으로 보장한다)
  */
-const { planQuery } = require('./query-plan');
+const { planQuery, WEIGHT } = require('./query-plan');
+const { expandToDomains } = require('./domains');
 const R = require('./rank');
 
 const PROGRAM_FIELDS = `program_id, source_portal, name, agency, field, region,
@@ -42,6 +43,9 @@ const TIER_TEXT  = {
   synonym: '동의어 일치',
   partial: '일부 일치',
   weak:    '참고 결과',
+  // 점수로 유도되지 않는 유일한 등급 — 분야 확장 검색이 통째로 이 등급을 쓴다.
+  // (public/search.html 의 .tier.domain 스타일이 이 키를 그대로 쓴다)
+  domain:  '분야 확장',
 };
 
 /**
@@ -84,8 +88,19 @@ async function searchPrograms(pool, opts) {
   // 개념이 하나뿐이면 완화 조건(_hits >= 1)이 엄격 조건(_hits = 1)과 글자만 다를 뿐 같다.
   // 그대로 두면 똑같은 질의를 두 번 돌리고, 게다가 전부 '정확 일치' 인 결과를 두고
   // "일부만 맞는 공고도 함께 보여드립니다" 라고 잘못 안내한다. (2026-08-19 리뷰에서 발견)
-  const relaxWouldDiffer = groups.length > 1 || (groups.length === 0 && phrases.length > 0);
+  // 완화검색이 실제로 다른 결과를 낼 수 있을 때만 돌린다.
+  // 완화되는 것은 '개념을 몇 개나 만족해야 하는가' 하나뿐이므로, 개념이 둘 이상일
+  // 때만 의미가 있다. 구문 조건은 두 모드에서 똑같이 적용되니 여기 끼워 넣으면 안 된다
+  // — 같은 질의를 두 번 돌리고, 전부 정확 일치인 결과를 두고 "일부만 맞는 공고" 라고
+  // 잘못 안내하게 된다.
+  const relaxWouldDiffer = groups.length > 1;
   if (strict.total >= MIN_STRICT_RESULTS || !relaxWouldDiffer) {
+    const expanded = await tryExpand(pool, {
+      hits: strict.total, plan, groups, phrases, dfs,
+      region, openOnly, page, pageSize, strictCount: strict.total, corpusSize,
+    });
+    if (expanded) return expanded;
+
     return shape({ ...strict, plan, groups, page, pageSize,
                    relaxed: false, strictCount: strict.total, corpusSize, dfs });
   }
@@ -102,8 +117,98 @@ async function searchPrograms(pool, opts) {
   if (!loose.total && half > 1) {
     loose = await runPass(pool, { ...common, mode: 'relaxed', minHits: 1 });
   }
+
+  // ── 3차: 분야 확장 ──
+  const expanded = await tryExpand(pool, {
+    hits: loose.total, plan, groups, phrases, dfs,
+    region, openOnly, page, pageSize, strictCount: strict.total, corpusSize,
+  });
+  if (expanded) return expanded;
+
   return shape({ ...loose, plan, groups, page, pageSize,
                  relaxed: true, strictCount: strict.total, corpusSize, dfs });
+}
+
+/**
+ * 분야 확장을 시도할지 판단하고, 조건이 맞으면 실행한다.
+ *
+ * 확장은 최후의 수단이다. 발동 조건을 틀리면 정확한 검색을 망치므로 세 관문을 둔다.
+ *
+ * 1) 결과가 0건일 것 — 기획서의 "정확 결과가 부족할 때만".
+ *
+ * 2) **검색어가 코퍼스에 정말로 없을 것.** 0건이라고 다 같은 0건이 아니다.
+ *    지역·모집중 필터 때문에 0건이 된 것을 '그런 공고가 없다' 고 말하면 거짓말이다.
+ *    실제로 '오폐수' + 모집중만 은 0건이 되는데(5건 있으나 전부 마감), 예전 코드는
+ *    "오폐수가 들어간 공고는 없습니다" 라며 엉뚱한 58건을 보여줬다.
+ *    dfs 는 필터를 타지 않은 개념별 문서수라 이 판단에 그대로 쓸 수 있다 —
+ *    전부 0 이어야 그 말이 코퍼스에 없는 것이다. (2026-08-20 리뷰에서 발견)
+ *
+ * 3) 큰따옴표 구문이 없을 것 — 구문은 이 엔진에서 유일하게 '원문에 그대로 있음' 을
+ *    약속하는 장치다. 확장은 그 약속을 지킬 수 없으므로 아예 손대지 않는다.
+ */
+async function tryExpand(pool, { hits, plan, groups, phrases, dfs, region, openOnly,
+                                 page, pageSize, strictCount, corpusSize }) {
+  if (hits) return null;
+  if (phrases && phrases.length) return null;
+  if (!groups.length) return null;
+  if (!dfs || !dfs.every((df) => df === 0)) return null;
+
+  return domainSearch(pool, { plan, groups, region, openOnly, page, pageSize, strictCount, corpusSize });
+}
+
+/**
+ * 분야 확장 검색.
+ *
+ * 검색어 자체는 버리고, 그 말이 속한 분야의 어휘로 다시 찾는다.
+ * 결과는 '분야 확장' 등급으로만 표시한다 — 사용자가 친 말이 실제로 들어있는 공고가
+ * 아니므로, 정확 일치인 척하면 안 된다.
+ *
+ * 확장어는 domains.js 의 검증된 표에서만 나온다. AI 는 분야를 고르기만 한다.
+ */
+async function domainSearch(pool, { plan, groups, region, openOnly, page, pageSize, strictCount, corpusSize }) {
+  const primaries = groups.map((g) => g.primary);
+
+  // 어간뿐 아니라 사용자가 실제로 친 말도 넘긴다.
+  // '떡볶이' 는 조사 절단으로 primary 가 '떡볶' 이 되는데, 사전에 있는 쪽은 '떡볶이' 다.
+  // (원형은 query-plan 이 대안어로 보존해 둔다)
+  const lookupTerms = [...new Set([
+    ...primaries,
+    ...groups.flatMap((g) => g.alternatives.flatMap((a) => a.terms)),
+  ])];
+
+  const exp = await expandToDomains(lookupTerms);
+  if (!exp || !exp.terms.length) return null;
+
+  // 분야 어휘 전체를 개념 하나로 묶는다 — 그 안에서는 OR 다.
+  // (어휘 고르기와 개수 제한은 domains.js 의 pickTerms 가 한다)
+  const domainGroup = {
+    primary: exp.labels.join(' · '),
+    alternatives: exp.terms.map((t) => ({ terms: [t], weight: WEIGHT.synonym, kind: 'domain' })),
+  };
+
+  // idf 는 계산하지 않는다. 개념이 하나뿐이면 _score 가 곧 _g0 이고, 거기 곱해지는
+  // 양수 상수는 정렬(ORDER BY _score DESC)도 _hits 도 _tier 도 바꾸지 못한다.
+  // 굳이 구하면 전체 스캔 한 번을 공짜로 버리는 셈이다 — 이미 느린 경로다.
+  const res = await runPass(pool, {
+    plan, groups: [domainGroup], phrases: [], idfs: [1],
+    region, openOnly, page, pageSize, mode: 'relaxed', minHits: 1,
+  });
+  if (!res.total) return null;
+
+  const shaped = shape({ ...res, plan, groups: [domainGroup], page, pageSize,
+                         relaxed: true, strictCount, corpusSize, dfs: null,
+                         tier: 'domain' });
+
+  // 확장으로 얻은 결과라는 사실을 결과 안에 분명히 남긴다.
+  shaped.expansion = {
+    applied: true,
+    original: primaries,
+    domains: exp.keys.map((k, i) => ({ key: k, label: exp.labels[i] })),
+    terms: exp.terms,
+    reason: exp.reason,
+    source: exp.source,
+  };
+  return shaped;
 }
 
 /**
@@ -130,11 +235,19 @@ async function runPass(pool, { plan, groups, phrases, idfs, region, openOnly, pa
   });
   const phraseAll = phrases.map((p) => R.phraseHitSql(p, params));
 
+  // 큰따옴표 구문은 어느 모드에서도 양보하지 않는다.
+  // 사용자가 따옴표를 쳤다는 건 '이 말이 원문에 그대로 있는 것만' 이라는 뜻이고,
+  // 이 엔진에서 그 약속을 하는 장치는 이것 하나뿐이다.
+  //
+  // 예전에는 완화 모드에서 phraseAll 을 후보 조건에 넣지 않았다. 그런데 조건식은
+  // 이미 만들어 둔 뒤라 파라미터만 등록되고 SQL 에는 안 들어가, 개념 하나 + 구문
+  // 질의가 'could not determine data type of parameter $6' 로 터졌다.
+  // (2026-08-20, relaxWouldDiffer 를 고쳐 이 경로가 처음 열리면서 드러났다)
   const candidate = [];
   if (mode === 'strict') {
-    candidate.push(...groupAny, ...phraseAll);          // 전부 만족해야 함
+    candidate.push(...groupAny, ...phraseAll);          // 개념도 구문도 전부 만족해야 함
   } else if (groupAny.length) {
-    candidate.push(`(${groupAny.join(' OR ')})`);       // 하나만 만족해도 됨
+    candidate.push(`(${groupAny.join(' OR ')})`, ...phraseAll);  // 개념은 하나만, 구문은 전부
   } else if (phraseAll.length) {
     candidate.push(...phraseAll);
   }
@@ -192,9 +305,10 @@ async function runPass(pool, { plan, groups, phrases, idfs, region, openOnly, pa
 
   // 후보 조건만으로는 부족하다 — 예컨대 동의어가 제목에만 스친 행도 후보엔 들어온다.
   // 최종 판정은 점수 기준으로 다시 한다.
+  // 완화되는 것은 '개념을 몇 개나 만족해야 하는가' 뿐이다. 구문 조건은 그대로 둔다.
   const where = mode === 'strict'
     ? `_phrase_ok AND _hits = ${n}`
-    : (n > 0 ? `_hits >= ${minHits}` : '_phrase_ok');
+    : (n > 0 ? `_phrase_ok AND _hits >= ${minHits}` : '_phrase_ok');
 
   // 페이지 파라미터를 붙이기 전의 개수를 기억해 둔다.
   // 아래 폴백 COUNT 질의는 LIMIT/OFFSET 을 쓰지 않으므로, 그 두 개까지 넘기면
@@ -222,7 +336,7 @@ async function runPass(pool, { plan, groups, phrases, idfs, region, openOnly, pa
 }
 
 /** 결과 행을 API 응답 모양으로 정리하고, 내부 계산 컬럼(_로 시작)은 떼어낸다. */
-function shape({ rows, plan, groups, total, page, pageSize, relaxed, strictCount, corpusSize, dfs }) {
+function shape({ rows, plan, groups, total, page, pageSize, relaxed, strictCount, corpusSize, dfs, tier: forcedTier }) {
   const items = rows.map((row) => {
     const matched = [];
     const missing = [];
@@ -231,7 +345,9 @@ function shape({ rows, plan, groups, total, page, pageSize, relaxed, strictCount
     const item = {};
     for (const [k, v] of Object.entries(row)) if (!k.startsWith('_')) item[k] = v;
 
-    const tier = TIER_LABEL[row._tier] || 'weak';
+    // 분야 확장은 점수와 무관하게 등급이 정해져 있다 — 사용자가 친 말이 실제로
+    // 들어있는 공고가 아니므로 '정확 일치' 로 보이면 안 된다.
+    const tier = forcedTier || TIER_LABEL[row._tier] || 'weak';
     item.match = {
       tier,
       tierText: TIER_TEXT[tier],
