@@ -21,7 +21,11 @@ const FIELD_WEIGHTS = [
   { col: 'name',                             w: 5.0 },  // 공고명
   { col: 'field',                            w: 4.0 },  // 지원분야
   { col: 'gov_tags_text(normalized_tags)',   w: 3.0 },  // 정규화 태그
-  { col: 'summary',                          w: 2.0 },  // 요약·본문
+  { col: 'summary',                          w: 2.0 },  // 요약
+  // 공고 본문. 기획서의 필드 서열(공고명·지원분야 > 지원대상·목적 > 요약 > 본문)에서 맨 아래다.
+  // 본문에는 '소음·진동·오폐수 발생 유발 업종은 제외' 처럼 부정 문맥도 섞여 있어,
+  // 걸리더라도 공고명 일치(5.0)보다 한참 아래에 놓여야 한다. (migration 012)
+  { col: 'body_text',                        w: 1.0 },  // 본문
   { col: 'agency',                           w: 0.2 },  // 기관명 (공통 푸터성 정보)
 ];
 
@@ -58,6 +62,28 @@ function termMatcher(term, params) {
 }
 
 /**
+ * search_blob 전용 조건 — 후보를 추리는 관문이다.
+ *
+ * 이 비교만은 4,844행 전부에서 돈다. 나머지 필드별 비교는 여기를 통과한 소수의 행에서만
+ * 도므로, 검색 속도는 사실상 이 한 줄이 결정한다.
+ *
+ * blob 은 migration 013 에서 소문자로 저장되므로 대소문자를 맞출 필요가 없다.
+ * ILIKE 는 문자마다 UTF-8 케이스 폴딩을 하느라 LIKE 보다 훨씬 비싸다.
+ *
+ * 2026-08-20 실측 (개념 5개 OR, 서버측 실행시간):
+ *     ILIKE  1,034ms  →  LIKE  288ms   (3.6배)
+ *
+ * 색인이 못 도와주는 구간이라 이 차이가 그대로 응답시간이 된다.
+ * pg_trgm 은 3글자부터 색인을 쓸 수 있는데 '의료'·'제약'·'진단' 처럼 한국어 검색어는
+ * 두 글자가 대부분이어서, 그런 말은 어차피 전체 훑기로 떨어진다.
+ */
+function blobMatcher(term, params) {
+  const t = String(term).toLowerCase();
+  if (isAcronym(t)) return `search_blob ~ ${params.add(boundary(t))}`;
+  return `search_blob LIKE ${params.add(like(t))}`;
+}
+
+/**
  * 파라미터를 모아 두는 작은 헬퍼.
  * SQL 문자열에 값을 절대 끼워넣지 않기 위해, 모든 검색어는 이 통로로만 들어간다.
  */
@@ -78,7 +104,7 @@ function termScoreSql(term, params) {
   const perField = FIELD_WEIGHTS
     .map(({ col, w }) => `CASE WHEN ${m(col)} THEN ${w} ELSE 0 END`)
     .join(' + ');
-  return `(CASE WHEN ${m('search_blob')} THEN (${perField}) ELSE 0 END)`;
+  return `(CASE WHEN ${blobMatcher(term, params)} THEN (${perField}) ELSE 0 END)`;
 }
 
 /**
@@ -87,7 +113,7 @@ function termScoreSql(term, params) {
  * 단일 컬럼이라 trigram 색인도 그대로 탄다.
  */
 function termHitSql(term, params) {
-  return termMatcher(term, params)('search_blob');
+  return blobMatcher(term, params);
 }
 
 /**

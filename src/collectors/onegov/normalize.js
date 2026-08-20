@@ -77,6 +77,9 @@ function normalizeOneGov(row) {
     period_end: periodEnd,
     detail_url: pick(row, 'source_url'),
     summary: (summary || body).slice(0, 500),
+    // 본문 전문. 요약 500자에 잘려 나가던 부분이 여기 남는다.
+    // 검색은 이 컬럼까지 봐야 '반도체'·'드론'처럼 본문에만 나오는 말을 찾는다. (migration 012)
+    body_text: body ? body.slice(0, 2000) : null,
     normalized_tags: cls.normalized_tags,
   };
 }

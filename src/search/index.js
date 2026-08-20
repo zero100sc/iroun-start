@@ -158,13 +158,13 @@ async function runPass(pool, { plan, groups, phrases, idfs, region, openOnly, pa
 
   const derived = `
     SELECT *, ${[...groupScore, ...groupExact, `(${phraseOk}) AS _phrase_ok`].join(',\n           ')}
-      FROM (${base}) AS b`;
+      FROM b`;
 
   const mid = `
     SELECT *, (${scoreSum}) AS _score,
            (${hitCount}) AS _hits,
            (${exactCount}) AS _exact
-      FROM (${derived}) AS d`;
+      FROM d`;
 
   // 일치 등급 — 기획서 5장 'A/B/C/D 등급' 을 정수로 옮긴 것.
   const tierSql = `
@@ -173,7 +173,22 @@ async function runPass(pool, { plan, groups, phrases, idfs, region, openOnly, pa
          WHEN _hits >= 1                                    THEN 2
          ELSE 1 END`;
 
-  const scored = `SELECT *, (${tierSql}) AS _tier FROM (${mid}) AS m`;
+  // ── 최적화 울타리 ────────────────────────────────────────────────
+  // 그냥 중첩 서브질의로 두면 PostgreSQL 이 전부 평탄화한다. 그러면 단어 점수식이
+  // Seq Scan 의 Filter 와 WindowAgg, 그리고 Sort Key 에 각각 통째로 인라인되어
+  // 같은 계산을 세 번 한다. 바깥의 WHERE 까지 스캔으로 밀려 내려가는 바람에
+  // 후보 걸러내기에 trigram 색인도 못 쓴다.
+  //
+  // 2026-08-20 EXPLAIN 실측 ('바이오', 본문 색인 후):
+  //   Seq Scan 1,302ms (4,196행 버림) + 재계산 595ms = 1,903ms
+  //
+  // MATERIALIZED 로 못을 박으면 각 단계가 딱 한 번씩만 돈다.
+  // b 는 색인으로 후보만 추리고, 점수 계산은 그 소수의 행에서만 일어난다.
+  const scored = `
+    WITH b AS MATERIALIZED (${base}),
+         d AS MATERIALIZED (${derived}),
+         m AS MATERIALIZED (${mid})
+    SELECT *, (${tierSql}) AS _tier FROM m`;
 
   // 후보 조건만으로는 부족하다 — 예컨대 동의어가 제목에만 스친 행도 후보엔 들어온다.
   // 최종 판정은 점수 기준으로 다시 한다.

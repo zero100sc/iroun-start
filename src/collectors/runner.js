@@ -22,7 +22,7 @@ const MAX_PAGES = 50; // 안전장치 — 잘못된 hasMore 로 무한 루프에
  * 만들면 '원문은 그대로인데 정규화 규칙만 고친' 경우가 영원히 반영되지 않는다.
  * 그래서 이 값을 해시에 섞는다. **분류·추출 로직을 고치면 반드시 올릴 것.**
  */
-const NORMALIZER_VERSION = 3;
+const NORMALIZER_VERSION = 4; // 4: body_text 보관 시작 (migration 012)
 
 function sha256(obj) {
   return crypto.createHash('sha256').update(JSON.stringify(obj)).digest('hex');
@@ -141,9 +141,10 @@ async function upsertProgram(pool, p, hash, koglType) {
        target_stages, target_segments, target_industries, region,
        amount_text, max_amount, funding_type, period_start, period_end,
        detail_url, summary, normalized_tags,
-       content_hash, kogl_type, is_open, last_seen_at, auto_ingested, synced_at
+       content_hash, kogl_type, body_text,
+       is_open, last_seen_at, auto_ingested, synced_at
      ) VALUES (
-       $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,
+       $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,
        COALESCE($15::date >= CURRENT_DATE, TRUE), NOW(), TRUE, NOW()
      )
      ON CONFLICT (source_portal, source_doc_id) WHERE source_doc_id IS NOT NULL
@@ -166,6 +167,9 @@ async function upsertProgram(pool, p, hash, koglType) {
        period_end = EXCLUDED.period_end,
        detail_url = EXCLUDED.detail_url,
        summary = EXCLUDED.summary,
+       -- 본문. 검색 색인(search_blob)이 이 값을 물고 있으므로 갱신에서 빠지면
+       -- 공고 내용이 바뀌어도 검색은 옛 본문을 계속 본다. (migration 012)
+       body_text = EXCLUDED.body_text,
        normalized_tags = EXCLUDED.normalized_tags,
        content_hash = EXCLUDED.content_hash,
        is_open = EXCLUDED.is_open,
@@ -178,6 +182,7 @@ async function upsertProgram(pool, p, hash, koglType) {
       p.target_stages, p.target_segments, p.target_industries, p.region,
       p.amount_text, p.max_amount, p.funding_type, p.period_start, p.period_end,
       p.detail_url, p.summary, p.normalized_tags, hash, koglType,
+      p.body_text ?? null,
     ],
   );
 

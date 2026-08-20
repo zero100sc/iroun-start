@@ -43,11 +43,17 @@ const CASES = [
       const bare = rows[0].n;
       if (r.total < bare * 2) return `총 ${r.total}건 vs 원어 단독 ${bare}건 — 동의어 확장 효과가 없다`;
 
-      // 뒤쪽 페이지까지 가면 'AI' 만 든 공고가 실제로 나와야 한다.
-      const deep = await search({ q: '인공지능', page: Math.ceil(r.total / 20), pageSize: 20 });
-      const aiOnly = deep.items.some((it) =>
+      // 'AI' 만 든 공고가 결과에 실제로 섞여 있어야 한다.
+      //
+      // 예전에는 마지막 페이지만 확인했는데, migration 012 로 본문이 색인에 들어간 뒤
+      // 그 방식이 깨졌다. 본문에만 걸린 공고가 뒤쪽을 채우는데, 그런 공고는 제목·요약·분야
+      // 어디에도 두 말이 없어 hay() 로는 판정할 수 없기 때문이다.
+      // 순위 앞쪽을 넓게 훑는 편이 '동의어가 실제로 먹혔는가' 에 대한 더 강한 확인이다.
+      const deep = await search({ q: '인공지능', page: 1, pageSize: 100 });
+      const aiOnly = deep.items.filter((it) =>
         !hay(it).includes('인공지능') && /(^|[^a-z0-9])ai([^a-z0-9]|$)/.test(hay(it)));
-      return aiOnly || 'AI 만 들어있는 공고를 끝까지 뒤져도 찾지 못했다';
+      return aiOnly.length > 0
+        || `상위 ${deep.items.length}건 안에 'AI' 만 들어있는 공고가 하나도 없다`;
     },
   },
   {
@@ -193,6 +199,40 @@ const CASES = [
       const far = await search({ q: '창업', page: 400, pageSize: 20 });
       if (far.items.length !== 0) return `범위 밖인데 ${far.items.length}건이 왔다`;
       if (far.total !== r.total) return `총계가 페이지마다 다르다: ${r.total} vs ${far.total}`;
+      return true;
+    },
+  },
+  {
+    // 2026-08-20 발견. 수집기는 본문을 raw_document 에 받아 두고도 마감일·금액 추출에만 쓰고
+    // 버렸다. gov_program 에는 요약 500자만 남아, 공고 1건당 평균 444자가 검색 대상 밖이었다.
+    // 그래서 '반도체' 는 본문에 139건 있는데 50건만 잡혔다. (migration 012)
+    name: '본문 색인 — 본문에만 나오는 말도 검색된다',
+    q: '반도체',
+    check: async (r, { pool }) => {
+      const { rows } = await pool.query(`
+        SELECT count(*) FILTER (WHERE COALESCE(body_text,'') ILIKE '%반도체%')::int AS body,
+               count(*) FILTER (WHERE name ILIKE '%반도체%'
+                                   OR COALESCE(summary,'') ILIKE '%반도체%'
+                                   OR COALESCE(field,'')   ILIKE '%반도체%')::int AS shallow
+          FROM gov_program`);
+      const { body, shallow } = rows[0];
+      if (!body) return '표본이 없다 — body_text 가 비어 있다(마이그레이션 012 미적용?)';
+      if (body <= shallow) return `표본이 부적절하다: 본문 ${body}건 ≤ 얕은 필드 ${shallow}건`;
+      if (r.total < body) return `본문에 ${body}건 있는데 검색은 ${r.total}건 — 본문이 색인에서 빠졌다`;
+      return true;
+    },
+  },
+  {
+    // migration 013 은 search_blob 을 소문자로 저장하고 검색은 LIKE 로 비교한다.
+    // 둘 중 하나만 바뀌면 영문 검색이 조용히 죽는다 — 한글만 보면 눈치채지 못한다.
+    name: '소문자 blob — 영문 대소문자를 섞어 쳐도 같은 결과',
+    q: 'startup',
+    check: async (r, { search }) => {
+      const upper = await search({ q: 'STARTUP', page: 1, pageSize: 5 });
+      const mixed = await search({ q: 'StartUp', page: 1, pageSize: 5 });
+      if (r.total !== upper.total || r.total !== mixed.total) {
+        return `대소문자에 따라 결과가 다르다: startup ${r.total} / STARTUP ${upper.total} / StartUp ${mixed.total}`;
+      }
       return true;
     },
   },
